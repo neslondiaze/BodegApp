@@ -1,0 +1,41 @@
+# BodegApp — Ignorados de repositorio
+
+# Dependencias
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+dist/
+build/
+
+# Entornos y secrets (NUNCA commitear)
+.env
+.env.*
+*.pem
+*.key
+secrets/
+infra/docker/secrets/
+
+# Bases de datos locales
+*.sqlite3
+data/*.sql
+data/dumps/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cobertura
+coverage/
+.coverage
+htmlcov/
