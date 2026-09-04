@@ -1,0 +1,18 @@
+# Modelo de Referencia — Descripción (AI)
+
+> **Fecha**: 2026-09-04 · **Fuente**: Descripción generada por IA, proporcionada por el inversor como insumo primario del análisis.
+> **Referencias**: [modelo-referencia.png](./modelo-referencia.png) (795×570, byte-idéntica al ODT) · Análisis: [design-system.md §9](../design-system.md)
+
+## Descripción verbatim
+
+🖥️ Descripción General de la UI: La imagen muestra una interfaz de escritorio clásica para un sistema de Punto de Venta (POS) / Facturación, diseñada probablemente en Windows Forms (.NET) o una tecnología de escritorio similar con estética de Windows XP/7. El software se llama 'FácilVirtual' y está configurado para la 'Caja: 01' con el rol de 'Cajero: Administrador'. La pantalla principal está dividida visualmente en tres zonas: entrada de datos y tabla de productos (izquierda), paneles de información de facturación/cliente (inferior) y totales con botonera de categorías (derecha).
+
+🧱 Desglose de Componentes por Zonas:
+
+1. Panel Superior Izquierdo: Entrada de Productos. Campos de Entrada: Un cuadro de texto (TextBox) etiquetado como 'Código de barras' (actualmente enfocado y vacío). Un cuadro de texto numérico (NumericUpDown o similar) etiquetado como 'Cantidad' con un valor por defecto de 1. Un botón de búsqueda (Button) con un icono de lupa que dice 'Buscar artículo'. Tabla de Ventas (DataGridView / ListView): Una grilla con fondo blanco y cabeceras verdes que lista los artículos cargados en la venta actual. Contiene 6 columnas: # (Índice/Contador), Código (Códigos de barra EAN-13 o identificadores internos como 'DEPT003'), Descripción (Nombre del producto, ej: 'LECHE ENTERA SANCOR C/HIERRO', 'GASEOSA COCA COLA BOTELLA 3...'), Cantidad (Enteros, todos en 1), Unitario (Precio por unidad con coma decimal), Importe (Subtotal por línea: Cantidad × Unitario). Botones de Acción de Tabla: Justo debajo de la grilla hay una fila de botones para modificar las filas seleccionadas: Quitar, Descuento, Recargo, Cambiar cantidad y Cambiar precio.
+
+2. Panel Inferior Izquierdo: Datos de Facturación y Cliente. Sección 'Datos del comprobante': Fecha: Selector de fecha (DateTimePicker) con el valor 18/04/2014. Tipo: Menú desplegable (ComboBox) con la opción seleccionada Ticket Fiscal. Nro.: Cuadro de texto para el número de comprobante (vacío). Observaciones: Un cuadro de texto multilínea amplio. Sección 'Datos del cliente': Campos de texto para Sr/a. (relleno automáticamente con '- Cliente Ocasional -'), Domicilio, Localidad y Teléfono/s. Condición IVA: Campo de estado que muestra 'Consumidor Final'. Un botón lateral que dice Cambiar cliente.
+
+3. Panel Lateral Derecho: Totales y Accesos Rápidos. Bloque de Totales (Fondo Negro con Texto de Alta Visibilidad): Subtotal: Muestra $ 122,50 en texto verde regular. Descuento/Recargo: Muestra $ 0,00 en texto blanco regular. Total: Un texto de gran tamaño en color verde brillante que muestra $ 122,50. Botón Principal de Acción: Un botón verde grande y prominente que dice F2 - Cobrar. Botones Secundarios de Control: Dos botones medianos debajo del total: F4 - Nueva venta y F5 - Ver precio. Botonera de Categorías / Departamentos: Una cuadrícula de 2x4 botones grises para acceso rápido a secciones del negocio sin escanear códigos: Fila 1: Almacén | Panadería. Fila 2: Fiambrería | Verduras y Frutas. Fila 3: Carnicería | Varios. Fila 4: Departamento 04 | Departamento 08.
+
+4. Pie de Pantalla y Branding: En la esquina inferior derecha hay un banner con el logo de 'fácil virtual'. En la esquina inferior izquierda, una barra de estado verde que reitera: Caja 01 | Cajero: Administrador.
