@@ -186,7 +186,7 @@ Estructura: imagen cuadrada 96px (radio `--radius-md`) o placeholder con inicial
 
 ### 5.4 Tablas de inventario
 
-Encabezado: fondo hover de superficie, texto `--font-caption` peso 600 `--color-text-secondary`, alto 40px. Filas: alto 48px (44px mínimo táctil), borde inferior 1px `--color-border`, texto `--font-data` para números. Columnas canónicas de inventario: Producto · Código de barras (M-04) · Stock · Mínimo · Precio Bs · Precio USD (tasa BCV) · Estado · Acciones. Filas con stock bajo/agotado llevan badge (§5.5) además de color — nunca solo color. Ordenación por columna con indicador textual (asc/desc). Vacío: mensaje centrado + CTA de alta.
+Encabezado: fondo hover de superficie, texto `--font-caption` peso 600 `--color-text-primary`, alto 40px. Filas: alto 48px (44px mínimo táctil), borde inferior 1px `--color-border`, texto `--font-data` para números. Columnas canónicas de inventario: Producto · Código de barras (M-04) · Stock · Mínimo · Precio Bs · Precio USD (tasa BCV) · Estado · Acciones. Filas con stock bajo/agotado llevan badge (§5.5) además de color — nunca solo color. Ordenación por columna con indicador textual (asc/desc). Vacío: mensaje centrado + CTA de alta.
 
 ### 5.5 Badges de stock
 
@@ -251,6 +251,7 @@ Cálculos reales (fórmula WCAG 2.1). Umbral texto normal 4.5:1; texto grande (�
 | `#2E7D32` sobre `#FFFFFF` | 5.13 | PASS | PASS | Autorizado |
 | `#212529` sobre `#FFF6E4` (mezcla 12% `#FFB81C` sobre `#FFFFFF`) | 14.36 | PASS | PASS | Alerta "Advertencia" claro: cuerpo/título sobre fondo mezcla (remedición QA F0-01 OBS-03) |
 | `#212529` sobre `#F5F5F5` (hover de superficie: mezcla 4% `#000` sobre `#FFFFFF`) | 14.15 | PASS | PASS | Alerta "Info" claro: cuerpo sobre fondo hover (remedición O-N-001) |
+| `#212529` sobre `#F5F5F5` (hover de superficie: mezcla 4% `#000` sobre `#FFFFFF`) | 14.15 | PASS | PASS | Encabezado de tabla §5.4 claro: texto `--font-caption` peso 600 12px con `--color-text-primary` (Remediación QA F0-01 OBS-04; `#6C757D` previo = 4.30 FAIL AA) |
 
 ### 7.2 Modo oscuro
 
@@ -269,6 +270,7 @@ Cálculos reales (fórmula WCAG 2.1). Umbral texto normal 4.5:1; texto grande (�
 | `#121212` sobre `#FFCA28` | 12.25 | PASS | PASS | ÚNICO texto sobre ámbar |
 | `#FFFFFF` sobre `#39331F` (mezcla 12% `#FFCA28` sobre `#1E1E1E`) | 12.60 | PASS | PASS | Alerta "Advertencia" oscuro: cuerpo/título sobre fondo mezcla (remedición QA F0-01 OBS-03) |
 | `#121212` sobre `#39331F` | 1.49 | **FAIL** | **FAIL** | **PROHIBIDO** — defecto original de la OBS-03; el texto oscuro solo va sobre el chip ámbar sólido |
+| `#FFFFFF` sobre `#2C2C2C` (hover de superficie oscuro: mezcla 6% `#FFF` sobre `#1E1E1E`) | 13.97 | PASS | PASS | Encabezado de tabla §5.4 oscuro: texto con `--color-text-primary` (Remediación QA F0-01 OBS-04). Verificación del secundario previo: `#9E9E9E` sobre `#2C2C2C` = 5.21 PASS AA — el defecto 4.30 era exclusivo del modo claro |
 | `#81C784` sobre `#121212` | 9.31 | PASS | PASS | Autorizado |
 | `#81C784` sobre `#1E1E1E` | 8.28 | PASS | PASS | Autorizado |
 | `#121212` sobre `#81C784` | 9.31 | PASS | PASS | ÚNICO texto sobre esmeralda |
