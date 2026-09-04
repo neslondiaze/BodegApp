@@ -1,0 +1,94 @@
+# =============================================================================
+# BodegApp — API image (FastAPI, Python 3.12)
+# Multi-stage, non-root, minimal attack surface (Sentinel Shield v1.0).
+# Build context: backend/ (this Dockerfile lives in infra/docker/ and is
+# referenced with dockerfile: ../infra/docker/Dockerfile.api).
+#
+# Build contract with backend team (Nelson, F0-03/F0-04):
+#   - Application code under backend/app/ with app.main:app ASGI object.
+#   - Dependencies in backend/requirements.txt (pinned versions).
+#   - Runtime reads sensitive config via *_FILE env vars pointing to Docker
+#     secrets under /run/secrets/ (never plaintext env vars).
+#   - Healthcheck endpoint GET /health returning 200.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: builder — install dependencies into an isolated venv.
+# -----------------------------------------------------------------------------
+FROM python:3.12-slim AS builder
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# -----------------------------------------------------------------------------
+# Stage 2: runtime — minimal, non-root, read-only friendly.
+# -----------------------------------------------------------------------------
+FROM python:3.12-slim
+
+# Security metadata
+LABEL org.opencontainers.image.title="bodegapp-api" \
+      org.opencontainers.image.description="BodegApp FastAPI backend (multi-tenant inventory)" \
+      org.opencontainers.image.vendor="Diaz Tech" \
+      org.opencontainers.image.version="0.1.0"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Dedicated non-root runtime user (no shell, no password, fixed UID).
+RUN groupadd -g 65532 appgroup \
+    && useradd -u 65532 -g appgroup -s /usr/sbin/nologin -M appuser
+
+# Copy the venv built in stage 1.
+COPY --from=builder /opt/venv /opt/venv
+
+WORKDIR /app
+
+# Application code (assumed layout: backend/app/, backend/requirements.txt).
+COPY app/ /app/app/
+
+# Runtime ownership: app code owned by root, not writable by appuser.
+RUN chown -R root:root /app \
+    && chmod -R a+rX /app
+
+# Unprivileged internal port; the reverse proxy is the only ingress.
+EXPOSE 8000
+
+# Fail fast + clean shutdown.
+STOPSIGNAL SIGTERM
+
+# Privilege-drop pattern: the container starts as root ONLY to stage the
+# root-owned Docker secrets, then drops to the unprivileged appuser via
+# setpriv before serving. Compose file-based secrets (non-swarm) mount with
+# host ownership and mode 0600, unreadable by the app user, so the entrypoint
+# copies them to an appuser-owned directory in /tmp (tmpfs) with tight modes
+# and re-points the *_FILE env vars. Secret VALUES never appear in env vars.
+# NOTE: written as a classic RUN (not COPY heredoc) for compatibility with
+# legacy builders (no BuildKit requirement), and with explicit
+# mkdir/chown/cp steps (coreutils `install`/`chmod` misreport EPERM/ENOENT on
+# tmpfs mounts even when the operation succeeds — verified empirically).
+# Verified privilege flow: dir owned root:appgroup 0750 (root needs no
+# DAC_OVERRIDE to write there), files chowned to appuser (readable ONLY by
+# the app), then setpriv drops all privileges before exec.
+RUN printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'mkdir -p /tmp/keys' \
+    'chown root:appgroup /tmp/keys' \
+    'chmod 0750 /tmp/keys' \
+    'for s in postgres_password jwt_private_key jwt_public_key; do' \
+    '  cp /run/secrets/$s /tmp/keys/$s' \
+    '  chown appuser:appgroup /tmp/keys/$s' \
+    'done' \
+    'exec setpriv --reuid=appuser --regid=appgroup --init-groups --no-new-privs \' \
+    '  env POSTGRES_PASSWORD_FILE=/tmp/keys/postgres_password \' \
+    '      JWT_PRIVATE_KEY_FILE=/tmp/keys/jwt_private_key \' \
+    '      JWT_PUBLIC_KEY_FILE=/tmp/keys/jwt_public_key \' \
+    "  python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*'" \
+    > /usr/local/bin/entrypoint.sh \
+    && chmod 750 /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["sh", "/usr/local/bin/entrypoint.sh"]
