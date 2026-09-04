@@ -66,7 +66,7 @@ Sistema de inventario de productos para bodegas (mercado venezolano: bodegones, 
 - **Body/UI** (textos, precios, botones): Inter o SF Pro Display
 
 ### Referencia visual
-- `design/referencias/modelo-referencia.png` — imagen adjunta por el inversor ("Modelo referencia"). Análisis pendiente por Nordanis (UI/UX).
+- `design/referencias/modelo-referencia.png` — imagen adjunta por el inversor ("Modelo referencia"). Analizado en `design/design-system.md` §9 (inventario de zonas, elementos conservados/descartados y mejoras web del POS legacy).
 
 ## 5. Consideraciones del Mercado (Venezuela)
 
