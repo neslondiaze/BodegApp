@@ -26,6 +26,8 @@ data/dumps/
 .idea/
 .vscode/
 *.swp
+.obsidian/
+.atl/
 
 # Sistema
 .DS_Store

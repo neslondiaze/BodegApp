@@ -7,14 +7,16 @@
 
 | Ref | Recurso / Célula | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|------------------|-----|----------------|--------|--------------|
-| F0-01 | Nordanis | UI/UX | Analizar imagen `design/referencias/modelo-referencia.png` y producir design system (paleta claro/oscuro + tipografía Plus Jakarta Sans/Inter) en tokens Tailwind | 🔴 | 08/09/2026 |
-| F0-02 | Alfredo | DevOps | docker-compose.yml endurecido (Sentinel Shield v1.0): API, Frontend, PostgreSQL, Zero Trust, secrets Docker | 🔴 | 10/09/2026 |
-| F0-03 | Nelson | Backend | Esquema PostgreSQL multi-tenant + estrategia de aislamiento (propuesta técnica a Cristian) | 🔴 | 12/09/2026 |
-| F0-04 | Nelson | Backend | Autenticación JWT RS256 con tokens dual (contratante/trabajo) | 🔴 | 15/09/2026 |
-| F0-05 | Noris | Frontend | Scaffold React 19 + Vite + TailwindCSS con routing protegido y arquitectura de tokens dual | 🔴 | 15/09/2026 |
-| F0-06 | Carlos | Documentación | Estructura de documentación del proyecto (README, guías de contribución, estándares) | 🔴 | 12/09/2026 |
-| F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🔴 | 09/09/2026 |
-| F0-08 | Emilio | QA | Plan maestro de pruebas + estrategia de testing por fase | 🔴 | 15/09/2026 |
+| F0-01 | Nordanis | UI/UX | Analizar imagen `design/referencias/modelo-referencia.png` y producir design system (paleta claro/oscuro + tipografía Plus Jakarta Sans/Inter) en tokens Tailwind | 🔵 En Revisión | 08/09/2026 |
+| F0-02 | Alfredo | DevOps | docker-compose.yml endurecido (Sentinel Shield v1.0): API, Frontend, PostgreSQL, Zero Trust, secrets Docker | 🔵 En Revisión | 10/09/2026 |
+| F0-03 | Nelson | Backend | Esquema PostgreSQL multi-tenant + estrategia de aislamiento (propuesta técnica a Cristian) | 🟡 En Progreso | 12/09/2026 |
+| F0-04 | Nelson | Backend | Autenticación JWT RS256 con tokens dual (contratante/trabajo) | 🟡 En Progreso | 15/09/2026 |
+| F0-05 | Noris | Frontend | Scaffold React 19 + Vite + TailwindCSS con routing protegido y arquitectura de tokens dual | 🔵 En Revisión | 15/09/2026 |
+| F0-06 | Carlos | Documentación | Estructura de documentación del proyecto (README, guías de contribución, estándares) | 🔵 En Revisión | 12/09/2026 |
+| F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🟡 En Progreso | 09/09/2026 |
+| F0-08 | Emilio | QA | Plan maestro de pruebas + estrategia de testing por fase | 🔵 En Revisión | 15/09/2026 |
+
+> **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-01: re-auditoría QA aprobada con observaciones — deuda técnica abierta: 12 ítems (OBS-04..12, O-N-003/004, R-03), remediación en curso ítem por ítem bajo directiva "0 deudas técnicas". F0-03: Parte 1 de 2 entregada (esqueleto + esquema multi-tenant, ADR-001, 6 tests OK). F0-04 despachada a Nelson. F0-07 despachada a Lead_Blue (gate para F0-02).
 
 ## Fase 1 — Núcleo de Inventario
 
