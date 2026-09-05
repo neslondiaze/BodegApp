@@ -65,6 +65,15 @@ El material sensible **nunca** viaja en variables de entorno en texto plano ni d
 
 Los archivos de secrets viven en `infra/docker/secrets/` (excluidos de git con `.gitignore`). En producción deben provisionarse desde un gestor de secrets (Vault, SOPS, etc.) antes del despliegue.
 
+**Política de permisos (obligatoria, hallazgo BT-02 de F0-07)**: TODO archivo de secret file-based debe provisionarse con modo **`0600`** en el host antes de desplegar. Docker lo monta root-owned `0600` y el patrón stage-and-drop lo copia al usuario de la app, pero el archivo en el host es el origen de confianza: si queda legible por otros usuarios del host (`0644`), el secret se fuga fuera del modelo. Verifica tras provisionar:
+
+```bash
+chmod 0600 secrets/*
+ls -l secrets/   # todos los archivos deben mostrar -rw-------
+```
+
+El único archivo que puede quedar `0644` es `jwt_public_key.pem` si se decide publicar la clave pública JWKS — por defecto también se provisiona `0600`.
+
 ## Pasos de despliegue
 
 ### 1. Generación de secrets
@@ -79,7 +88,7 @@ openssl rand -base64 32 > secrets/postgres_password.txt
 # Par de claves JWT RS256 (4096 bits)
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out secrets/jwt_private_key.pem
 openssl pkey -in secrets/jwt_private_key.pem -pubout -out secrets/jwt_public_key.pem
-chmod 600 secrets/jwt_private_key.pem
+chmod 600 secrets/jwt_private_key.pem secrets/jwt_public_key.pem
 
 # Certificado TLS autofirmado para desarrollo
 # (en producción usa un certificado de tu CA interna o LetsEncrypt)
@@ -88,6 +97,7 @@ openssl req -x509 -nodes -newkey rsa:4096 -sha256 -days 365 \
   -subj "/CN=bodegapp.local" \
   -addext "subjectAltName=DNS:bodegapp.local,DNS:localhost,IP:127.0.0.1"
 chmod 600 secrets/proxy_tls_key.pem
+chmod 600 secrets/postgres_password.txt   # política 0600 para TODOS los secrets (BT-02)
 ```
 
 ### 2. Variables de entorno
