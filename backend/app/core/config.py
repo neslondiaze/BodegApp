@@ -19,13 +19,22 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite+aiosqlite:///./bodegapp.db"
 
-    # JWT RS256 key material (F0-04 will build full auth on top of this)
+    # JWT RS256 key material (loaded from file paths, never hardcoded)
     jwt_private_key_path: str = "secrets/jwt_private_key.pem"
     jwt_public_key_path: str = "secrets/jwt_public_key.pem"
 
-    # Token lifetimes (seconds) — contract: INTEGRACION-BACKEND-FRONTEND.md §1
+    # Token lifetimes — contract §1: work token short, contractor token long
     access_token_minutes: int = 15
     refresh_token_days: int = 7
+
+    # Clock skew tolerance for JWT verification (seconds) — QA B4
+    jwt_clock_leeway_seconds: int = 30
+
+    # Refresh rotation (contract rule T3). Kept configurable because the
+    # current frontend apiClient does NOT persist a rotated refresh token
+    # (see tests: it keeps the old one), so strict rotation would break the
+    # active session. Enable once the frontend updates it atomically.
+    refresh_rotation_enabled: bool = False
 
     # CORS — only declared frontend origins, never "*" (integration contract §3.4)
     cors_origins: list[str] = ["http://localhost:5173"]
