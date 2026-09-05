@@ -36,6 +36,9 @@ Sistema de inventario de productos para bodegas (mercado venezolano: bodegones, 
 | M-13 | Configuración scraping | Programación del scraping por días y horas |
 | M-14 | Diseño de promociones WhatsApp | Módulo de diseño de promociones para envío por WhatsApp |
 | M-15 | Integración peso electrónico | Balanza digital vía USB, RJ45 o RS-232 (Serial) |
+| M-16 | Ticket Fiscal | Impresión de ticket fiscal (58mm/80mm) con campos fiscales VE; diseño en design-system.md §10; soporte de reimpresión marcada y anulación |
+
+> M-16 agregado por decisión del inversor el 04/09/2026 (resuelve O-N-005).
 
 ## 4. Identidad Visual (Definida por el Inversor)
 
