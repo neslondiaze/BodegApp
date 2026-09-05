@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '@/lib/apiClient';
 
 const loginMock = vi.fn();
+const logoutMock = vi.fn();
 
 vi.mock('@/lib/apiClient', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/apiClient')>();
@@ -12,6 +13,7 @@ vi.mock('@/lib/apiClient', async (importOriginal) => {
     ...actual,
     authApi: {
       login: (...args: unknown[]) => loginMock(...args),
+      logout: (...args: unknown[]) => logoutMock(...args),
     },
   };
 });
@@ -74,7 +76,8 @@ describe('AuthContext', () => {
     expect(loginMock).toHaveBeenCalledWith('admin', 'secreto');
   });
 
-  it('logout clears tokens and session state', async () => {
+  it('logout revokes the contractor token on the server before clearing the session', async () => {
+    logoutMock.mockResolvedValue(undefined);
     localStorage.setItem(
       TOKEN_STORAGE_KEY,
       JSON.stringify({ accessToken: 'work.token', refreshToken: 'contractor.token' }),
@@ -86,6 +89,25 @@ describe('AuthContext', () => {
     await user.click(screen.getByRole('button', { name: 'logout' }));
 
     await waitFor(() => expect(screen.getByText('anonymous')).toBeInTheDocument());
+    expect(logoutMock).toHaveBeenCalledWith('contractor.token');
+    expect(localStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(USER_STORAGE_KEY)).toBeNull();
+  });
+
+  it('logout clears the session even if the server revocation fails', async () => {
+    logoutMock.mockRejectedValue(new Error('network down'));
+    localStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({ accessToken: 'work.token', refreshToken: 'contractor.token' }),
+    );
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify({ id: '1', username: 'admin' }));
+    const user = userEvent.setup();
+
+    renderWithProvider();
+    await user.click(screen.getByRole('button', { name: 'logout' }));
+
+    await waitFor(() => expect(screen.getByText('anonymous')).toBeInTheDocument());
+    expect(logoutMock).toHaveBeenCalledWith('contractor.token');
     expect(localStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
     expect(localStorage.getItem(USER_STORAGE_KEY)).toBeNull();
   });

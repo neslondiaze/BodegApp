@@ -33,6 +33,8 @@ export function configureAuthCallbacks(callbacks: {
   onUnauthorized = callbacks.onUnauthorized;
 }
 
+type RefreshTokensResponse = RefreshResponse & { refresh_token: string };
+
 apiClient.interceptors.request.use((config) => {
   try {
     const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -75,14 +77,12 @@ apiClient.interceptors.response.use(
     }
 
     try {
-      const { data } = await axios.post<RefreshResponse>('/api/v1/auth/refresh', {
+      const { data } = await axios.post<RefreshTokensResponse>('/api/v1/auth/refresh', {
         refresh_token: contractorToken,
       });
-      const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
-      const tokens = raw ? (JSON.parse(raw) as { refreshToken: string }) : { refreshToken: '' };
       localStorage.setItem(
         TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: data.access_token, refreshToken: tokens.refreshToken }),
+        JSON.stringify({ accessToken: data.access_token, refreshToken: data.refresh_token }),
       );
       original.headers.Authorization = `Bearer ${data.access_token}`;
       return apiClient(original);
@@ -97,5 +97,9 @@ export const authApi = {
   async login(username: string, password: string): Promise<LoginResponse> {
     const { data } = await apiClient.post<LoginResponse>('/auth/login', { username, password });
     return data;
+  },
+
+  async logout(refreshToken: string): Promise<void> {
+    await apiClient.post('/auth/logout', { refresh_token: refreshToken });
   },
 };
