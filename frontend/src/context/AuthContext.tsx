@@ -55,6 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    const refreshToken = readTokens()?.refreshToken;
+    if (refreshToken) {
+      authApi.logout(refreshToken).catch(() => {});
+    }
     clearSession();
   }, [clearSession]);
 
