@@ -15,7 +15,7 @@
 | F0-06 | Carlos | Documentación | Estructura de documentación del proyecto (README, guías de contribución, estándares) | 🔵 En Revisión | 12/09/2026 |
 | F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🟢 Completado | 09/09/2026 |
 | F0-08 | Emilio | QA | Plan maestro de pruebas + estrategia de testing por fase | 🔵 En Revisión | 15/09/2026 |
-| F0-09 | Nordanis | UI/UX | Diseño de Ticket Fiscal (M-16) en design-system.md §10: formatos 58/80mm, campos fiscales VE, reimpresión marcada y anulación | 🟠 Bloqueado — sin arranque tras recordatorio 05/09; escalada formal emitida (`docs/plantillas/ESCALADA-F0-09-NORDANIS.md`); si al 06/09 no hay señal → reporte a inversor + evaluación de reasignación | 10/09/2026 |
+| F0-09 | Nordanis | UI/UX | Diseño de Ticket Fiscal (M-16) en design-system.md §10: formatos 58/80mm, campos fiscales VE, reimpresión marcada y anulación | 🔵 En Revisión QA (entregado 05/09, commit `d0ffff1` — **escalada resuelta: arranque inmediato tras notificación**; 8 hallazgos N-F009-01..08; validación legal → LEG-01) | 10/09/2026 |
 
 > **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-03 y F0-04 completados y auditados por QA (42/42 tests, 97% cobertura). F0-07 gate cerrado: Lead_Blue aprobó F0-02 con 6 observaciones no bloqueantes (BT-01..BT-06, registro abajo). Deuda F0-01: 10 ítems abiertos (OBS-06, OBS-09 del lote 1; OBS-07, OBS-08, OBS-10, OBS-11, OBS-12, O-N-003, O-N-004, R-03 del lote 2) — OBS-04 y OBS-05 remediados y verificados por QA esta sesión. O-N-005 resuelto 04/09/2026 (noche): el inversor autorizó soportar Ticket Fiscal como M-16 — diseño delegado a Nordanis (F0-09).
 
@@ -43,11 +43,11 @@
 
 | Ref | Recurso / Célula | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|------------------|-----|----------------|--------|--------------|
-| F1-01 | Nelson | Backend | API CRUD Productos (M-02) con aislamiento tenant | 🟡 En Progreso (delegada 05/09 — `docs/plantillas/DELEGACION-F1-01-PRODUCTOS-NELSON.md`) | 26/09/2026 |
+| F1-01 | Nelson | Backend | API CRUD Productos (M-02) con aislamiento tenant | 🔵 En Revisión QA (entregada 05/09 — fix BT-SR01-01 `e87e9ea` + CRUD `b7a2ac9`, 79/79 tests, RBAC provisional aplicado; 4 hallazgos N-F101-01..04) | 26/09/2026 |
 | F1-02 | Nelson | Backend | API CRUD Proveedores (M-03) | 🔴 (arranca al entregar F1-01 — directiva flujo continuo) | 30/09/2026 |
 | F1-03 | Nelson | Backend | API Configuración de Tienda (M-01) | 🔵 En Revisión QA (entregada 05/09, commit `b83782a` — QA en paralelo, no retiene a Nelson) | 24/09/2026 |
 | F1-04 | Nelson | Backend | Motor de alertas de mínimo de stock (M-06) | 🔴 | 03/10/2026 |
-| F1-05 | Noris | Frontend | Pantallas CRUD Productos/Proveedores/Tienda consumiendo APIs F1-01..03 | 🟡 En Progreso — arranque parcial 05/09: pantalla Configuración de Tienda sobre API F1-03 (`docs/plantillas/DELEGACION-F1-05-INVENTARIO-NORIS.md`) | 10/10/2026 |
+| F1-05 | Noris | Frontend | Pantallas CRUD Productos/Proveedores/Tienda consumiendo APIs F1-01..03 | 🔵 En Revisión QA (parcial entregado 05/09: pantalla Configuración de Tienda `d32625e`, 20/20 tests; 4 hallazgos N-F105-01..04 — N-F105-01 tokens.json requiere decisión de gobernanza) | 10/10/2026 |
 | F1-06 | Noris | Frontend | UI de alertas de mínimo (M-06) | 🔴 | 14/10/2026 |
 | F1-07 | Morloy | Data Science | Reporte de compras (M-07): análisis de stock/mínimos, diseño de dashboard | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 10/10/2026 |
 | F1-08 | Javier | Java/JVM | Motor de reportes JasperReports para reporte de compras PDF (M-07) | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 14/10/2026 |
@@ -104,9 +104,12 @@
 
 | Ref | Recurso | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|---------|-----|----------------|--------|--------------|
-| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟢 Completado (05/09 — commit `c6b48ab`, pendiente de merge tras ST-02) | 05/09/2026 ✅ |
-| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🟡 En Progreso (delegación emitida 05/09 — `docs/plantillas/DELEGACION-ST02-SMOKE-TEST-EMILIO.md`) | HOY 05/09 (inmediato) |
-| SR-01 | Lead_Blue | Blue Team | Revisión de seguridad del patrón de aislamiento tenant en F1-03 (patrón que replica F1-01+) — solo lectura, no bloquea merge | 🟡 En Progreso (activada 05/09 — Orden de Adelanto Ola 1) | 08/09/2026 |
+| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟢 Completado y **mergeado a main** (05/09 — `66e5ad6`) | 05/09/2026 ✅ |
+| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🟢 Completado (05/09 — ✅ **VERIFICADO 7/7**; 4 hallazgos QA-ST02-01..04, ninguno bloquea merge; autoriza entrega a inversor) | 05/09/2026 ✅ |
+| SR-01 | Lead_Blue | Blue Team | Revisión de seguridad del patrón de aislamiento tenant en F1-03 (patrón que replica F1-01+) — solo lectura, no bloquea merge | 🟢 Completado (05/09 — **SEGURO CON OBSERVACIONES**; 9 hallazgos BT-SR01-01..09; BT-SR01-01 remediado por Nelson `e87e9ea`) | 05/09/2026 ✅ |
+| SR-02 | Nelson + Alfredo | Backend + DevOps | Remediación QA-ST02-01 (Alta): habilitar rotación de refresh token — default backend + config staging + redeploy | 🟡 En Progreso (delegada 05/09 — `docs/plantillas/ORDEN-REMEDIACION-ST02.md`) | 08/09/2026 |
+| SR-03 | Alfredo | DevOps | Remediación QA-ST02-02 (Media): CSP proxy (font-src data: + hash script inline) + verificación pyjwt en imagen (N-F101-02) | 🟡 En Progreso (delegada 05/09 — `docs/plantillas/ORDEN-REMEDIACION-ST02.md`) | 08/09/2026 |
+| LEG-01 | Wilfredo | Legal/Compliance | Validación normativa VE del Ticket Fiscal (N-F009-04..08): naturaleza del comprobante, leyendas reimpresión/anulación, alícuotas IVA, formato factura | 🔴 Pendiente (delegación emitida 05/09 — `docs/plantillas/DELEGACION-LEGAL-F0-09-WILFREDO.md`) | 12/09/2026 |
 
 ## Dependencias Críticas
 
