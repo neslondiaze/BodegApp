@@ -12,6 +12,7 @@ build/
 # Entornos y secrets (NUNCA commitear)
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 secrets/

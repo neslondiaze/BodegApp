@@ -38,6 +38,11 @@ secrets:
     file: ./secrets/proxy_tls_cert.pem
   proxy_tls_key:
     file: ./secrets/proxy_tls_key.pem
+  # Restricted-access credentials for the staging edge (basic auth).
+  # Generated with: printf 'demo:%s\n' "$(openssl passwd -apr1 'PASS')" \
+  #   > secrets/proxy_htpasswd   (see README.md, never commit)
+  proxy_htpasswd:
+    file: ./secrets/proxy_htpasswd
 
 x-logging: &default-logging
   driver: json-file
@@ -62,7 +67,16 @@ services:
     image: nginx:1.27-alpine
     container_name: bodegapp-proxy
     hostname: proxy
-    command: ["nginx", "-g", "daemon off;"]
+    # Stage-and-drop for the edge: the entrypoint stages the root-owned
+    # htpasswd secret into the /tmp tmpfs with worker ownership (Compose
+    # file-based secrets mount root:root 0600 and are unreadable by the
+    # non-root nginx workers that open auth_basic_user_file per request).
+    # TLS material needs no staging: the root master reads it at config
+    # load time (it retains CAP_DAC_READ_SEARCH).
+    command:
+      - /bin/sh
+      - -c
+      - cp /run/secrets/proxy_htpasswd /tmp/proxy_htpasswd && chmod 0400 /tmp/proxy_htpasswd && chown 101:101 /tmp/proxy_htpasswd && exec nginx -g 'daemon off;'
     volumes:
       - ./proxy/nginx-main.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -81,6 +95,11 @@ services:
         target: /etc/nginx/certs/proxy_tls_cert.pem
       - source: proxy_tls_key
         target: /etc/nginx/certs/proxy_tls_key.pem
+      # Staging restricted-access credentials (basic auth). Staged to
+      # /tmp/proxy_htpasswd (worker-owned) by the service command — see
+      # the command block for the rationale.
+      - source: proxy_htpasswd
+        target: proxy_htpasswd
     depends_on:
       frontend:
         condition: service_healthy
@@ -111,8 +130,14 @@ services:
     init: true
     restart: unless-stopped
     tmpfs:
-      - /tmp:uid=101,gid=101,mode=0755,size=16m,noexec,nosuid
-      - /var/cache/nginx:uid=101,gid=101,mode=0755,size=32m,noexec,nosuid
+      # NOTE: no uid=/gid= on either tmpfs. The nginx master starts as root
+      # (to read root-owned Docker secrets) and creates the temp directories
+      # + pid file itself BEFORE dropping workers to uid 101; the master then
+      # chowns the temp dirs to the worker user. A 101-owned tmpfs would deny
+      # the root master (which lacks CAP_DAC_OVERRIDE) at mkdir time —
+      # verified empirically on the staging host (hallazgo ST-01-06).
+      - /tmp:mode=0755,size=16m,noexec,nosuid
+      - /var/cache/nginx:mode=0755,size=32m,noexec,nosuid
     pids_limit: 64
     ulimits:
       nofile:
@@ -192,16 +217,16 @@ services:
     expose:
       - "8000"
     environment:
-      # Non-sensitive configuration ONLY. Sensitive values follow the
-      # *_FILE convention and are read from Docker secrets at /run/secrets/.
+      # Non-sensitive configuration ONLY. The backend (pydantic-settings)
+      # reads BODEGAPP_* variables: the DB URL is assembled by the image
+      # entrypoint from the staged postgres_password secret (value never
+      # appears in compose), and JWT key paths point at the staged copies.
+      # Legacy POSTGRES_PASSWORD_FILE / JWT_*_FILE vars removed: the backend
+      # never read them (hallazgo ST-01-03 — see README).
       POSTGRES_USER: ${POSTGRES_USER:-bodegapp}
       POSTGRES_DB: ${POSTGRES_DB:-bodegapp}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      JWT_ALGORITHM: RS256
-      JWT_PRIVATE_KEY_FILE: /run/secrets/jwt_private_key
-      JWT_PUBLIC_KEY_FILE: /run/secrets/jwt_public_key
       PYTHONDONTWRITEBYTECODE: "1"
       PYTHONUNBUFFERED: "1"
     networks:
@@ -220,7 +245,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=3)" || exit 1
+        - python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)" || exit 1
       interval: 30s
       timeout: 5s
       retries: 3
@@ -245,9 +270,12 @@ services:
     init: true
     restart: unless-stopped
     tmpfs:
-      # Writable and executable: the healthcheck and staging copy run here.
-      # Size is the real boundary (64m), contents are ephemeral.
-      - /tmp:uid=65532,gid=65532,mode=0755,size=64m
+      # Writable and executable: the healthcheck and staged secrets live here.
+      # Size is the real boundary (64m), contents are ephemeral. NOTE: no
+      # uid=/gid= — the entrypoint starts as root to stage secrets and run
+      # alembic (root needs write access to /tmp for /tmp/keys). Once the
+      # privilege drop happens, the running app owns the tree it needs.
+      - /tmp:size=64m
     pids_limit: 128
     ulimits:
       nofile:

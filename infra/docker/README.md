@@ -62,6 +62,7 @@ El material sensible **nunca** viaja en variables de entorno en texto plano ni d
 | `jwt_private_key` | Clave privada RS256 para firmar tokens | `api` |
 | `jwt_public_key` | Clave pública RS256 para verificar tokens | `api` |
 | `proxy_tls_cert` / `proxy_tls_key` | Certificado y clave del proxy (TLS en el borde) | `proxy` |
+| `proxy_htpasswd` | Credenciales basic auth del borde (acceso restringido staging) | `proxy` |
 
 Los archivos de secrets viven en `infra/docker/secrets/` (excluidos de git con `.gitignore`). En producción deben provisionarse desde un gestor de secrets (Vault, SOPS, etc.) antes del despliegue.
 
@@ -98,6 +99,11 @@ openssl req -x509 -nodes -newkey rsa:4096 -sha256 -days 365 \
   -addext "subjectAltName=DNS:bodegapp.local,DNS:localhost,IP:127.0.0.1"
 chmod 600 secrets/proxy_tls_key.pem
 chmod 600 secrets/postgres_password.txt   # política 0600 para TODOS los secrets (BT-02)
+
+# Credenciales basic auth del borde (acceso restringido staging, ST-01).
+# Cambiá el password y guardalo en el gestor de contraseñas del equipo.
+printf 'demo:%s\n' "$(openssl passwd -apr1 'CAMBIAME-staging')" > secrets/proxy_htpasswd
+chmod 600 secrets/proxy_htpasswd
 ```
 
 ### 2. Variables de entorno
@@ -119,8 +125,33 @@ docker compose up -d --build
 docker compose ps                          # los 4 servicios deben quedar healthy
 docker compose logs -f proxy               # revisa TLS y upstreams
 curl -k https://localhost/healthz           # debe devolver ok
-curl -k https://localhost/api/health        # debe responder la API
+curl -k https://localhost/api/v1/health    # debe responder la API
 ```
+
+### 4b. Usuario de prueba (seed ad-hoc documentado — no hay script seed)
+
+No existe un script de seed en el repositorio. Para verificar login
+end-to-end antes del smoke test ST-02, provisioná un tenant + usuario demo
+con un comando ad-hoc contra el postgres del stack (password hash generado
+con argon2 del propio backend, así el hash es verificable por `passlib`):
+
+```bash
+# 1) Hash del password demo con argon2 (usa el venv de la imagen del API):
+HASH=$(docker compose exec -T api python -c \
+  "from app.core.security import hash_password; print(hash_password('Demo123!'))")
+
+# 2) Tenant + usuario demo (idempotente si ya existe: ajustá los UUID fijos):
+docker compose exec -T postgres psql -U bodegapp -d bodegapp -c "
+  INSERT INTO tenants (id, name, slug, is_active)
+  VALUES ('11111111-1111-1111-1111-111111111111','BodegApp Demo','bodegapp-demo',true)
+  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO users (id, tenant_id, username, email, hashed_password, full_name, role, is_active)
+  VALUES ('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111',
+          'demo','demo@bodegapp.local','$HASH','Usuario Demo','owner',true)
+  ON CONFLICT (email) DO NOTHING;"
+```
+
+Credenciales resultantes: `demo` / `Demo123!` (via username o email).
 
 ### 5. Operación
 
@@ -166,5 +197,6 @@ infra/docker/
     ├── jwt_private_key.pem
     ├── jwt_public_key.pem
     ├── proxy_tls_cert.pem
-    └── proxy_tls_key.pem
+    ├── proxy_tls_key.pem
+    └── proxy_htpasswd
 ```
