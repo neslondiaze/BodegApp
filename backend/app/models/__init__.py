@@ -68,6 +68,13 @@ class User(Base):
 
 
 class StoreConfig(Base):
+    """Per-tenant store configuration (M-01).
+
+    Fiscal fields (rif, razon_social, fiscal_address) are included from the
+    start because M-16 (Ticket Fiscal) needs them on every printed ticket;
+    storing them now avoids a schema rework right after the M-01 CRUD ships.
+    """
+
     __tablename__ = "store_configs"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -83,6 +90,11 @@ class StoreConfig(Base):
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="VES")
+    # Fiscal identity (Venezuela) — required by M-16 Ticket Fiscal.
+    # RIF: "J-12345678-9" style (letter + digits + check digit).
+    rif: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    razon_social: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    fiscal_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

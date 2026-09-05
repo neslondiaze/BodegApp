@@ -216,6 +216,36 @@ async def do_login(client: AsyncClient) -> dict:
     return response.json()
 
 
+async def login_as(
+    client: AsyncClient, username: str, password: str = PASSWORD
+) -> dict:
+    """Login as an arbitrary user and return the dual token pair."""
+    response = await client.post(
+        "/api/v1/auth/login", json={"username": username, "password": password}
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def auth_headers(tokens: dict) -> dict:
+    return {"Authorization": f"Bearer {tokens['access_token']}"}
+
+
+def tienda_payload(**overrides) -> dict:
+    """Default valid store-config request body for M-01 tests."""
+    payload = {
+        "nombre_comercial": "Bodega Central C.A.",
+        "rif": "J-12345678-9",
+        "razon_social": "Bodega Central Compañía Anónima",
+        "direccion": "Av. Principal, Local 4, Caracas",
+        "direccion_fiscal": "Av. Principal, Local 4, Caracas",
+        "telefono": "0212-5551234",
+        "moneda": "VES",
+    }
+    payload.update(overrides)
+    return payload
+
+
 def sign_with_attacker_key(payload: dict) -> str:
     """Sign a token with the attacker's private key (QA B2)."""
     import jwt

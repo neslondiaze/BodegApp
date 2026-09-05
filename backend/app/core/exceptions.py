@@ -91,3 +91,18 @@ class PermisoInsuficienteError(ApiError):
             codigo="PERMISO_INSUFICIENTE",
             mensaje="No tenés permiso para realizar esta acción.",
         )
+
+
+class RecursoNoEncontradoError(ApiError):
+    """404 for resources that do not exist in the caller's tenant.
+
+    The contract (§3.2) requires 404 — not 403 — for resources owned by
+    another tenant, so existence is never leaked across tenants.
+    """
+
+    def __init__(self, mensaje: str | None = None) -> None:
+        super().__init__(
+            status_code=404,
+            codigo="RECURSO_NO_ENCONTRADO",
+            mensaje=mensaje or "El recurso solicitado no existe en esta tienda.",
+        )
