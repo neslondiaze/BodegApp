@@ -352,6 +352,300 @@ Síntesis del mapeo: la referencia valida la **operatoria** de bodega (escanear,
 
 ---
 
+## 10. Ticket Fiscal (M-16)
+
+> Sección añadida por F0-09 (Nordanis, UI/UX — 05/09/2026). Requerimiento: `docs/REQUERIMIENTOS.md` M-16 (línea 39, decisión del inversor 04/09/2026, resuelve O-N-005). Delegación y estándar: `docs/plantillas/RECORDATORIO-ARRANQUE-NORDANIS.md`.
+> **El ticket fiscal es un documento legal-fiscal**: legibilidad y cumplimiento de campos obligatorios VE tienen prioridad ABSOLUTA sobre estética (§10.1 principio 1). El ticket físico es monocromático (negro sobre papel térmico): la paleta de color §1 aplica solo a la vista previa en pantalla, reutilizando pares de contraste ya autorizados en §7.
+
+### 10.1 Alcance y principios
+
+1. **Legal primero**: todo campo fiscal obligatorio VE definido en M-16 (razón social, RIF, número de factura, fecha/hora, base imponible, IVA, total) se imprime con el tamaño y énfasis máximo de su bloque. Ninguna decisión estética puede degradar, ocultar o reducir un campo fiscal.
+2. **Monocromo térmico**: el ticket físico usa SOLO negro sólido sobre papel térmico blanco. PROHIBIDO escala de grises, tramado (dithering) e inversión de video para texto (ver §10.9).
+3. **Paleta cerrada (§0.1) se mantiene**: la vista previa en pantalla no introduce hex nuevos; reutiliza exclusivamente pares autorizados en §7.1/§7.2.
+4. **Monoespaciado estructural**: todo el ticket (físico y preview) usa fuente monoespaciada — alineación de columnas de importes garantizada por diseño, equivalente térmico de la regla `tnum` de §2.1.
+5. **Datos, no diseño**: la alícuota de IVA, la leyenda fiscal y los textos legales son DATOS del sistema (configurables), nunca valores fijos del diseño. El diseño define ubicación, tamaño y énfasis; el contenido legal requiere validación de Wilfredo (Legal) — ver §10.10 dependencias.
+6. **Trazabilidad**: reimpresión y anulación se marcan de forma inequívoca y verificable a simple vista, conservando el 100% de los datos originales del comprobante (§10.8).
+
+### 10.2 Formatos de impresión y grilla
+
+Formatos M-16: **58mm** y **80mm** (impresión térmica). Métrica de referencia ESC/POS, cabezal 203 dpi (8 dots/mm):
+
+| Especificación | 58mm | 80mm |
+|----------------|------|------|
+| Ancho de papel | 58mm | 80mm |
+| Ancho útil de impresión | 48mm | 72mm |
+| Resolución de cabezal | 203 dpi (8 dots/mm) | 203 dpi (8 dots/mm) |
+| Fuente del cuerpo (Font A) | 12×24 dots = 1,5×3,0mm por carácter | ídem |
+| **Columnas de cuerpo (Font A)** | **32 caracteres/línea** | **48 caracteres/línea** |
+| Font B (9×17 dots = 1,13×2,13mm) | 42 col — SOLO pie no fiscal (§10.3) | 64 col — SOLO pie no fiscal |
+| Pitch de línea | 30 dots = 3,75mm | 30 dots = 3,75mm |
+| Margen lateral | 1mm por lado (driver) | 1mm por lado (driver) |
+| Énfasis (ESC/POS) | `GS !` doble alto (DH); doble alto+ancho (DH+DW); `ESC E` doble golpe (B) | ídem |
+| Corte | Corte total + 2 líneas de alimentación en blanco antes del corte (protección del cabezal) | ídem |
+
+Reglas de grilla:
+
+- La **tabla de columnas (32/48) es el contrato del layout**: es la vía canónica de implementación (comandos ESC/POS nativos, a consumir por la API de Nelson en F1). Si un proveedor imprime vía driver CSS, mantener los anchos de papel en mm y las zonas porcentuales equivalentes — no las columnas.
+- **Font B PROHIBIDO para campos fiscales** (razón social, RIF, número de factura, fecha/hora, detalle, base, IVA, total): su glifo de 1,13×2,13mm no garantiza legibilidad de datos legales. Font B se permite únicamente en el pie no fiscal (agradecimiento, promoción), nunca en 58mm para texto que el cliente deba leer.
+- Mayúsculas en todo el cuerpo del ticket (estándar térmico, mejora legibilidad en matriz de puntos). Codepage **CP850 obligatorio** (preserva á, é, í, ó, ú, ñ de la razón social — el nombre legal NO se normaliza); si el hardware no soporta CP850, se normaliza sin diacríticos y se registra hallazgo.
+- Separadores de bloque: filas continuas de `-` (32/48 guiones). Filas de `*` reservadas EXCLUSIVAMENTE para marcar banners de variante (§10.8).
+
+### 10.3 Tipografía monoespaciada y tokens
+
+**Impresión térmica**: las impresoras ESC/POS traen las fuentes en ROM (Font A/B descritas en §10.2); el diseño especifica qué fuente, tamaño y énfasis usa cada bloque (tablas §10.4-§10.7). No se envían fuentes al hardware.
+
+**Vista previa en pantalla (web, React)**: familia **JetBrains Mono** — monoespaciada de código abierto, dígitos inequívocos (`0`/`O`, `1`/`l` distinguibles), armoniza con Inter (§2) por altura-x y forma similar, y existe en pesos 400/700. Fallbacks del sistema. Peso 400 en cuerpo; 700 SOLO en banners y TOTAL (jerarquía fiscal justifica el bold; la regla "solo 400" de estética terminal NO aplica a un documento legal).
+
+Tokens nuevos de §10 (implementación en `design/tokens/tokens.css`/`tokens.json` delegada a Noris, F0-05/F1 — ver §10.10):
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--font-mono-ticket` | `'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace` | Fuente única del ticket (preview; equivalente térmico: Font A) |
+| `--ticket-body` | 13px · 1.4 · 400 | Cuerpo del ticket (equivale a Font A) |
+| `--ticket-caption` | 12px · 1.35 · 400 | Pie no fiscal (equivale a Font B) |
+| `--ticket-title` | 16px · 1.3 · 700 | Razón social, "TICKET FISCAL" (equivale a DH/DH+DW) |
+| `--ticket-banner` | 16px · 1.3 · 700 · uppercase · tracking 0.1em | Banners REIMPRESIÓN / ANULADO (equivale a DH+DW) |
+| `--ticket-total` | 16px · 1.3 · 700 | Línea TOTAL (equivale a DH) |
+| `--ticket-w-58` | 219px | Ancho de la vista previa 58mm (96dpi) |
+| `--ticket-w-80` | 302px | Ancho de la vista previa 80mm (96dpi) |
+| `--ticket-paper` | `#FFFFFF` (fijo, NO temático) | Papel térmico en preview: el ticket es artefacto físico blanco, no se tematiza en modo oscuro |
+| `--ticket-ink` | `#212529` | Tinta de datos (15.43:1 sobre `#FFFFFF`, autorizado §7.1) |
+| `--ticket-sep-ink` | `#6C757D` | Separadores en preview (4.69:1 sobre `#FFFFFF`, autorizado §7.1) |
+
+Formato numérico (regla térmica de `tnum` §2.1):
+
+- Moneda: `#.###,##` — punto para miles, coma decimal, 2 decimales (convención del mercado VE). Símbolo `Bs` solo en labels de totales (ahorro de columnas en 58mm).
+- Cantidad: enteros para unidades (`2`); 3 decimales para artículos pesados (M-15): `0,750 KG`.
+- Importes y cantidades SIEMPRE alineados a la derecha de su zona; descripción SIEMPRE a la izquierda. El preview web fija `font-variant-numeric: tabular-nums` además del monoespaciado (consistencia con §2.1).
+
+### 10.4 Estructura de bloques y jerarquía
+
+| Bloque | Contenido | Jerarquía / énfasis |
+|--------|-----------|--------------------|
+| A · Encabezado emisor | Razón social, RIF, dirección, teléfono | Razón social DH+DW centrada; RIF B centrado; dirección/teléfono normal |
+| B · Identificación del comprobante | "TICKET FISCAL" (B o DH), serial de máquina fiscal, **número de factura** (B), fecha/hora de emisión, cliente / CONSUMIDOR FINAL | Número de factura en B (bold); resto normal, label a la izquierda |
+| V · Banner de variante (condicional) | REIMPRESIÓN y/o ANULADO (§10.8) | DH+DW, enmarcado por filas de `*` |
+| C · Detalle de la venta | Artículos: cantidad, descripción, precio unitario, importe | Normal; sublínea de cantidad×unitario en 58mm |
+| D · Totales fiscales | Leyenda IVA, base imponible, IVA por alícuota, **TOTAL** | Leyenda B; base/IVA normal right-flush; **TOTAL DH (58mm) / DH+DW (80mm)** |
+| E · Pie | Leyenda de variante al pie (si aplica), agradecimiento | Font B permitido (no fiscal) |
+| F · Corte | 2 líneas en blanco + corte total | — |
+
+Orden fijo de bloques: **A → B → [V] → C → D → [V-al-pie] → E → F**. El banner de variante se imprime DOS veces (arriba tras B, y abajo antes de E) para que sobreviva al desgarro del papel en cualquier extremo.
+
+### 10.5 Mockup canónico — formato 58mm (32 columnas)
+
+Leyenda de énfasis: `(DH)` doble alto, `(DH+DW)` doble alto+ancho, `(B)` bold. Mockup a 32 columnas exactas:
+
+```
+    BODEGON EL CENTRAL, C.A.          (DH+DW, centrado)
+          J-31234567-8                (B, centrado)
+  AV. PRINCIPAL, EDIF. CENTRAL
+      LOCAL 4 - CARACAS 1040
+       TEL: 0212-555-1234
+********************************
+          TICKET FISCAL             (B)
+********************************
+ MAQ. FISCAL: VSE-042723
+ FACT. NRO: 001-00012345            (B)
+ EMISION: 05/09/2026 14:32:05
+ CLIENTE: CONSUMIDOR FINAL
+--------------------------------
+ARTICULO                  IMPORTE
+LECHE ENTERA 1L SANCOR     12,00
+  2,000 UN X 6,00
+PAN CAMPESINO 500G          6,50
+  1,000 UN X 6,50
+QUESO BLANCO KG              8,10
+  0,750 KG X 10,80
+--------------------------------
+    PRECIO CON IVA INCLUIDO       (B)
+ BASE IMPONIBLE Bs         22,55
+ IVA 16% Bs                  4,05
+ TOTAL PAGAR Bs             26,60  (DH)
+--------------------------------
+      GRACIAS POR SU COMPRA
+       ** BODEGAPP **              (Font B, no fiscal)
+```
+
+Zonas del bloque C (58mm) — contrato de columnas:
+
+| Zona | Columnas (1-32) | Alineación |
+|------|------------------|------------|
+| Descripción | 1-22 | Izquierda; trunca/pasa a sublínea si excede 22 |
+| Importe | 23-32 | Derecha (10 caracteres) |
+| Sublínea `CANT UN X P.UNIT` | 3-19 | Izquierda, indentada 2 — solo si el artículo pesado (M-15) o descuento/recargo lo requiere; en unidades enteras se omite |
+
+En 58mm el precio unitario NO tiene columna propia (no cabe con calidad legible): se resuelve con sublínea `CANT UN x P.UNIT`. El importe de renglón SIEMPRE está presente (campo fiscal del detalle).
+
+### 10.6 Mockup canónico — formato 80mm (48 columnas)
+
+```
+            BODEGON EL CENTRAL, C.A.        (DH+DW, centrado)
+                  J-31234567-8              (B, centrado)
+     AV. PRINCIPAL, EDIF. CENTRAL, LOCAL 4
+      CARACAS 1040 - DISTRITO CAPITAL
+               TEL: 0212-555-1234
+************************************************
+                 TICKET FISCAL               (B)
+ MAQ. FISCAL: VSE-042723
+ FACT. NRO: 001-00012345                     (B)
+ EMISION: 05/09/2026 14:32:05
+ CLIENTE: CONSUMIDOR FINAL
+------------------------------------------------
+  CANT ARTICULO                  P.UNIT IMPORTE
+ 2,000 LECHE ENTERA 1L SANCOR      6,00   12,00
+ 1,000 PAN CAMPESINO 500G         6,50    6,50
+ 0,750 QUESO BLANCO KG           10,80    8,10
+------------------------------------------------
+             PRECIO CON IVA INCLUIDO          (B)
+   BASE IMPONIBLE Bs                       22,55
+   IVA 16% Bs                                4,05
+   TOTAL PAGAR Bs                           26,60  (DH+DW)
+------------------------------------------------
+          GRACIAS POR SU COMPRA - BODEGAPP
+```
+
+Zonas del bloque C (80mm) — contrato de columnas:
+
+| Zona | Columnas (1-48) | Ancho | Alineación |
+|------|------------------|-------|------------|
+| Cantidad | 1-6 | 6 | Derecha (`2,000` incluye 3 decimales de M-15) |
+| Separador | 7 | 1 | — |
+| Descripción | 8-31 | 24 | Izquierda; trunca a 24 + continuación en línea inferior indentada |
+| Separador | 32 | 1 | — |
+| Precio unitario | 33-40 | 8 | Derecha |
+| Separador | 41 | 1 | — |
+| Importe | 42-48 | 7 | Derecha |
+
+En 80mm el precio unitario TIENE columna propia (ventaja del formato ancho); los artículos pesados (M-15) muestran la cantidad en la columna CANT sin sublínea.
+
+### 10.7 Campos fiscales obligatorios (VE) — checklist
+
+Baseline obligatorio según M-16; la columna "Validación legal" marca los campos cuya exigencia o redacción exacta requiere confirmación de Wilfredo (Legal) — el diseño los ubica y dimensiona ya, para que un cambio de redacción NO cambie el layout (principio 5 de §10.1: son datos configurables).
+
+| # | Campo fiscal | Fuente de dato | Bloque | Énfasis | Validación legal |
+|---|--------------|----------------|--------|---------|------------------|
+| 1 | Razón social del emisor | M-01 Config. tienda | A | DH+DW centrado | OK (M-16) |
+| 2 | RIF del emisor | M-01 | A | B centrado | OK (M-16) |
+| 3 | Serial de máquina fiscal | Config. fiscal (payload F1) | B | Normal | ⚠ N-F009-04 (naturaleza del comprobante) |
+| 4 | Número de factura | Contador fiscal (payload F1) | B | B | ⚠ N-F009-08 (formato del número) |
+| 5 | Fecha y hora de emisión | Reloj del sistema/fiscal | B | Normal | OK (M-16) |
+| 6 | Identificación del cliente o "CONSUMIDOR FINAL" | M-08/M-09 o default | B | Normal | ⚠ N-F009-04 |
+| 7 | Detalle: descripción, cantidad, precio unitario, importe | Venta en curso | C | Normal | OK |
+| 8 | Leyenda "PRECIO CON IVA INCLUIDO" | Config. (texto dato) | D | B | ⚠ N-F009-07 (redacción exacta) |
+| 9 | Base imponible | Cálculo de la venta | D | Normal, right-flush | OK (M-16) |
+| 10 | IVA (por alícuota) | Cálculo (alícuota = dato) | D | Normal, right-flush | ⚠ N-F009-07 (alícuotas aplicables) |
+| 11 | TOTAL | Cálculo de la venta | D | DH (58mm) / DH+DW (80mm) | OK (M-16) |
+
+Reglas del bloque D:
+
+- Una fila por alícuota de IVA presente en la venta (ej. `IVA 16% Bs`, `IVA 8% Bs`): el diseño soporta N filas; qué alícuotas aplica la bodega es dato legal (N-F009-07).
+- Montos right-flush a la columna límite (32/48); labels a la izquierda con un espacio de margen.
+- La fila TOTAL usa la máxima jerarquía del ticket (§10.4); en 58mm es DH SIN doble ancho (`TOTAL PAGAR Bs 26,60` = 22 caracteres > 16 columnas visibles de DH+DW); en 80mm es DH+DW (`TOTAL PAGAR Bs 26,60` = 20 ≤ 24 columnas visibles).
+
+### 10.8 Variantes: REIMPRESIÓN y ANULADO
+
+Ambas variantes son marcaciones de un comprobante YA EMITIDO: los datos fiscales originales (bloques A-D) se reimprimen idénticos, sin omisión ni alteración. La variante SOLO agrega banners y metadatos de la operación (fecha, motivo, operador).
+
+#### 10.8.1 Variante REIMPRESIÓN
+
+- **Banner superior** (tras bloque B) e **inferior** (antes del pie E): la palabra `REIMPRESION` en DH+DW, centrada, enmarcada por filas de `*` (32/48). El asterisco está reservado a banners de variante (§10.2) — ningún otro bloque lo usa, para que la marca sea inequívoca a simple vista.
+- Metadatos bajo el banner superior: `REIMPRESO: <fecha/hora de la reimpresión>` y `EMISION: <fecha/hora original>` (esta última ya existe en bloque B; se conserva).
+- **Leyenda al pie**: texto legal de la reimpresión — DATO configurable; redacción exacta PENDIENTE Wilfredo (N-F009-05).
+
+```
+********************************
+          REIMPRESION          (DH+DW, centrado)
+********************************
+ REIMPRESO: 05/09/2026 15:02:11
+--------------------------------
+     (bloques C y D idénticos)
+--------------------------------
+********************************
+          REIMPRESION          (DH+DW, centrado)
+********************************
+ LEYENDA LEGAL DE REIMPRESION   (dato — N-F009-05)
+```
+
+#### 10.8.2 Variante ANULADO
+
+- **Banner superior e inferior**: `ANULADO` en DH+DW, centrada, enmarcada por filas de `*` — mismo lenguaje visual que REIMPRESIÓN, palabra distinta (paralelismo reconocible).
+- Metadatos bajo el banner superior: `ANULADO EL: <fecha/hora>`, `MOTIVO: <dato>`, `OPERADOR: <dato>`.
+- **PROHIBIDO tachar, cubrir u oscurecer los datos fiscales** (sin marcas cruzadas sobre el detalle/totales): el comprobante anulado sigue siendo registro legal y debe permanecer 100% legible. La anulación se comunica por banners + metadatos, nunca destruyendo información.
+- **Leyenda al pie**: "no válido como comprobante" — DATO configurable; redacción y relación con Nota de Crédito PENDIENTE Wilfredo (N-F009-06).
+
+```
+********************************
+           ANULADO            (DH+DW, centrado)
+********************************
+ ANULADO EL: 05/09/2026 15:05:00
+ MOTIVO: ERROR DE CAPTURA
+ OPERADOR: ADMIN-01
+--------------------------------
+     (bloques C y D idénticos, legibles)
+--------------------------------
+********************************
+           ANULADO            (DH+DW, centrado)
+********************************
+ LEYENDA LEGAL DE ANULACION     (dato — N-F009-06)
+```
+
+#### 10.8.3 Composición REIMPRESIÓN + ANULADO
+
+Un ticket anulado que se reimprime muestra AMBOS banners apilados (primero ANULADO — estado del comprobante —, luego REIMPRESION — naturaleza de la copia), cada uno con sus filas de `*`. Los banners inferiores se apilan en el mismo orden. Regla: máximo 2 banners por posición (no existen otras variantes en M-16).
+
+#### 10.8.4 Vista previa y acciones en la UI (flujo del operador)
+
+- **Vista previa de ticket**: modal §5.7 con la maqueta del ticket a ancho `--ticket-w-58`/`--ticket-w-80` según la impresora configurada (selector de formato en Configuración, M-01). Papel `--ticket-paper` fijo blanco con tinta `--ticket-ink` (15.43:1 §7.1) — no se tematiza.
+- Banners en preview (pares ya autorizados §7.1): REIMPRESIÓN → texto `#212529` sobre `#FFF6E4` (14.36:1); ANULADO → texto `#800020` sobre `#FFFFFF` (10.28:1).
+- Acciones: **Imprimir** (botón primario §5.1), **Reimprimir** (secundario; deshabilitado si el ticket no está emitido; abre confirmación §5.7 mostrando el banner de preview), **Anular** (destructivo §5.1; requiere confirmación con motivo obligatorio — input §5.2). Anular jamás imprime automáticamente: el operador decide reimprimir la copia anulada.
+- La vista previa del banner cumple foco/teclado estándar (§7.3 regla 5); el estado de variante se comunica con TEXTO (palabra REIMPRESION/ANULADO), nunca solo con color — el ticket físico es monocromo y el digital hereda la regla.
+
+### 10.9 Contraste y accesibilidad en papel térmico
+
+1. **Negro sólido = único color**: `#000000` sobre papel térmico blanco ≈ 21:1 (equivalente del par máximo §7). La densidad de impresión se configura en valor estándar/fijo de fábrica; PROHIBIDO el modo "económico/claro" para tickets fiscales. Prueba de aceptación QA: caracteres legibles sin esfuerzo a 30cm con luz de bodega tras 24h de emitido (descarte térmico).
+2. **PROHIBIDO escala de grises y tramado** (`GS v 0` raster) para cualquier texto: el antialiasing no existe en térmica y el gris degrada a punteado ilegible. Logo/arte en el pie: monocromo puro o nada.
+3. **PROHIBIDO inversión de video** (blanco sobre negro) en más de una línea: los bloques negros densos sobrecalientan el cabezal y empastan el papel. Los banners usan texto DH+DW con marco de `*`, nunca rectángulos negros.
+4. **Tamaño mínimo legible**: Font A (1,5×3,0mm) para TODO lo fiscal; Font B solo pie no fiscal (§10.2). La razón social, número de factura y TOTAL usan énfasis mayor (§10.4) — son los tres datos que un cliente/funcionario busca primero.
+5. **Copia digital ampliable** (accesibilidad funcional): el ticket se archiva en el historial digital (patrón M-08/M-09) renderizado como documento ampliable en pantalla con los tokens de preview (§10.3) — usuarios de baja visión leen el mismo contenido con zoom de navegador. El papel térmico desvanece con calor/luz: la copia digital es además respaldo del registro.
+6. **Preview en pantalla**: pares de contraste documentados en §10.3/§10.8.4 — todos autorizados previamente en §7.1 (`#212529`/`#FFFFFF` 15.43, `#6C757D`/`#FFFFFF` 4.69, `#212529`/`#FFF6E4` 14.36, `#800020`/`#FFFFFF` 10.28). Sin hex nuevos (principio §0.1).
+
+### 10.10 Gobernanza, contrato de datos y trazabilidad
+
+**Gobernanza** (extiende §8):
+
+- Los tokens de §10.3 se implementan en `design/tokens/tokens.css` y `tokens.json` — tarea de **Noris** (F0-05/F1), NO de esta entrega (alcance F0-09: solo `design-system.md`).
+- Cambios a §10 requieren aprobación de **Cristian**; la redacción exacta de leyendas fiscales y los requisitos normativos requieren validación de **Wilfredo** (Legal) — hallazgos N-F009-04..08 (§ informe F0-09); QA de **Emilio** requerido antes de merge.
+- Consumidores: **Nelson** (API/payload de impresión, F1) y **Noris** (preview/impresión frontend, F1).
+
+**Contrato de datos del payload** (para Nelson, F1 — el layout consume estos campos):
+
+| Campo | Ejemplo | Bloque |
+|-------|---------|--------|
+| `razon_social`, `rif`, `direccion`, `telefono` | M-01 | A |
+| `serial_maquina_fiscal`, `numero_factura`, `fecha_emision`, `cliente` / `consumidor_final` | `VSE-042723` · `001-00012345` | B |
+| `items[]: {cantidad, unidad, descripcion, precio_unitario, importe}` | `0,750 KG QUESO BLANCO` | C |
+| `leyenda_iva`, `base_imponible`, `iva_por_alicuota[]: {alícuota, monto}`, `total` | `16%` · `4,05` | D |
+| `variante: null \| reimpresion \| anulado \| ambas`, `fecha_variante`, `motivo`, `operador`, `leyenda_variante` | §10.8 | V/E |
+| `formato: 58 \| 80` | selector de impresora | grilla §10.2 |
+
+**Trazabilidad de decisiones de §10:**
+
+| Decisión | Justificación |
+|----------|---------------|
+| JetBrains Mono en preview | Monoespaciada open source, dígitos inequívocos, armoniza con Inter (§2); peso 700 reservado a jerarquía fiscal (TOTAL/banners) |
+| 32/48 columnas como contrato | Ancho útil ESC/POS ÷ glifo Font A (48mm/1,5mm=32; 72mm/1,5mm=48) — reproducible en cualquier térmica 203 dpi |
+| Unitario sin columna en 58mm | 32 columnas no admiten 4 zonas legibles; sublínea `CANT X P.UNIT` es patrón estándar de ticket angosto |
+| Font B prohibido en campos fiscales | Glifo 1,13×2,13mm insuficiente para datos legales; solo pie no fiscal |
+| Banner = texto DH+DW + marco de `*`, nunca bloque negro | Cabezal térmico se daña con áreas densas (§10.9.3); `*` reservado a variantes = marca inequívoca |
+| TOTAL: DH en 58mm, DH+DW en 80mm | En 58mm la línea completa no cabe en 16 columnas visibles de DH+DW; en 80mm sí (20 ≤ 24) |
+| Papel de preview fijo blanco | El ticket es artefacto físico; tematizarlo oscuro falsearía el documento (contraste 15.43:1 §7.1) |
+| Variante imprime datos originales íntegros + banners duplicados (arriba/abajo) | Registro legal inalterable (principio 6) + supervivencia al desgarro del papel |
+| Leyendas/alícuotas como datos configurables | Cambios legales no alteran el layout; validación redactada por Wilfredo (N-F009-04..08) |
+| Sin código de barras/QR del comprobante | M-16 no lo exige; M-04/M-05 son escaneo de productos. Anotado como posible backlog futuro |
+
+---
+
 ### Anexo — Trazabilidad de decisiones
 
 | Decisión | Justificación |
