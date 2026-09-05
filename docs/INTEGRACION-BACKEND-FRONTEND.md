@@ -39,8 +39,10 @@ BodegApp usa dos tokens JWT firmados con **RS256** (requerimiento 0-1/0-2):
 
 ```
 POST /api/v1/auth/login
-{ "usuario": "...", "password": "..." }
+{ "username": "...", "password": "..." }
 ```
+
+> Nota: el campo es `username` (así lo implementan backend `app/schemas/auth.py` y frontend `src/lib/apiClient.ts`). El valor acepta **username o email** — el backend resuelve ambos. Corregido 04/09/2026 (QA-F04-07); el contrato decía `usuario`.
 
 Éxito (`200`):
 
@@ -62,7 +64,7 @@ Errores: `401 CREDENCIALES_INVALIDAS`.
 Authorization: Bearer <access_token>
 ```
 
-Todo endpoint funcional (excepto `/auth/login` y `/auth/refresh`) rechaza sin este header con `401 TOKEN_AUSENTE`.
+Todo endpoint funcional (excepto `/auth/login`, `/auth/refresh` y `/auth/logout` — ver §2.5) rechaza sin este header con `401 TOKEN_AUSENTE`.
 
 ### 2.3 Refresh (rotación del token de trabajo)
 
@@ -100,9 +102,10 @@ Errores: `401 REFRESH_INVALIDO` / `401 REFRESH_EXPIRADO` → el frontend **debe*
 
 ```
 POST /api/v1/auth/logout
-Authorization: Bearer <access>
 { "refresh_token": "<JWT contratante>" }
 ```
+
+> Nota: logout es **body-only** — no requiere header `Authorization: Bearer`. Es **idempotente**: un refresh token expirado, inválido o ya revocado sigue devolviendo `200` (QA-F04-08). Corregido 04/09/2026; el contrato exigía Bearer.
 
 Éxito (`200`): `{ "mensaje": "Sesión cerrada" }`. El backend revoca el token contratante; el frontend limpia tokens en memoria y redirige a login.
 
