@@ -9,14 +9,27 @@
 |-----|------------------|-----|----------------|--------|--------------|
 | F0-01 | Nordanis | UI/UX | Analizar imagen `design/referencias/modelo-referencia.png` y producir design system (paleta claro/oscuro + tipografía Plus Jakarta Sans/Inter) en tokens Tailwind | 🔵 En Revisión | 08/09/2026 |
 | F0-02 | Alfredo | DevOps | docker-compose.yml endurecido (Sentinel Shield v1.0): API, Frontend, PostgreSQL, Zero Trust, secrets Docker | 🔵 En Revisión | 10/09/2026 |
-| F0-03 | Nelson | Backend | Esquema PostgreSQL multi-tenant + estrategia de aislamiento (propuesta técnica a Cristian) | 🟡 En Progreso | 12/09/2026 |
-| F0-04 | Nelson | Backend | Autenticación JWT RS256 con tokens dual (contratante/trabajo) | 🟡 En Progreso | 15/09/2026 |
+| F0-03 | Nelson | Backend | Esquema PostgreSQL multi-tenant + estrategia de aislamiento (propuesta técnica a Cristian) | 🟢 Completado | 12/09/2026 |
+| F0-04 | Nelson | Backend | Autenticación JWT RS256 con tokens dual (contratante/trabajo) | 🟢 Completado | 15/09/2026 |
 | F0-05 | Noris | Frontend | Scaffold React 19 + Vite + TailwindCSS con routing protegido y arquitectura de tokens dual | 🔵 En Revisión | 15/09/2026 |
 | F0-06 | Carlos | Documentación | Estructura de documentación del proyecto (README, guías de contribución, estándares) | 🔵 En Revisión | 12/09/2026 |
-| F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🟡 En Progreso | 09/09/2026 |
+| F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🟢 Completado | 09/09/2026 |
 | F0-08 | Emilio | QA | Plan maestro de pruebas + estrategia de testing por fase | 🔵 En Revisión | 15/09/2026 |
 
-> **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-01: re-auditoría QA aprobada con observaciones — deuda técnica abierta: 12 ítems (OBS-04..12, O-N-003/004, R-03), remediación en curso ítem por ítem bajo directiva "0 deudas técnicas". F0-03: Parte 1 de 2 entregada (esqueleto + esquema multi-tenant, ADR-001, 6 tests OK). F0-04 despachada a Nelson. F0-07 despachada a Lead_Blue (gate para F0-02).
+> **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-03 y F0-04 completados y auditados por QA (42/42 tests, 97% cobertura). F0-07 gate cerrado: Lead_Blue aprobó F0-02 con 6 observaciones no bloqueantes (BT-01..BT-06, registro abajo). Deuda F0-01: 10 ítems abiertos (OBS-06, OBS-09 del lote 1; OBS-07, OBS-08, OBS-10, OBS-11, OBS-12, O-N-003, O-N-004, R-03 del lote 2) — OBS-04 y OBS-05 remediados y verificados por QA esta sesión. Pendiente de decisión del inversor: O-N-005 (Ticket Fiscal).
+
+> **Registro de observaciones Blue Team — gate F0-07/F0-02 (Lead_Blue, 04/09/2026):** Veredicto ⚠️ APROBADO CON OBSERVACIONES. Ninguna bloquea producción.
+
+| Ref | Descripción | Severidad | Acción correctiva | Responsable | Estado |
+|-----|-------------|-----------|-------------------|-------------|--------|
+| BT-01 | Sin `.dockerignore` en frontend/ y backend/; `COPY . .` arrastra node_modules al build | Media | Crear .dockerignore en ambos contextos | Alfredo | 🔴 |
+| BT-02 | `secrets/postgres_password.txt` con modo 0644 en host (resto 0600) | Media | chmod 0600 + documentar provisión | Alfredo | 🔴 |
+| BT-03 | `/tmp` del api sin noexec pese a staging de claves en /tmp/keys | Media | Separar staging a /run/keys noexec | Alfredo | 🔴 |
+| BT-04 | uvicorn `--forwarded-allow-ips '*'` confía en cualquier peer (mitigado por segmentación) | Media | Restringir a IP del proxy | Alfredo | 🔴 |
+| BT-05 | CSP con `style-src 'unsafe-inline'` | Baja | Migrar a nonce (fase posterior) | Alfredo | 🔴 |
+| BT-06 | Masters arrancan como root antes del drop (patrón documentado) | Baja | Verificar runtime en F0-08 | Alfredo + Emilio | 🔴 |
+
+> Condición de Lead_Blue: BT-01 y BT-02 deben resolverse **antes del deploy a producción**. BT-04 sugerido al backlog de hardening F1.
 
 ## Fase 1 — Núcleo de Inventario
 
