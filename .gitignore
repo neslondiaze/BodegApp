@@ -41,3 +41,7 @@ logs/
 coverage/
 .coverage
 htmlcov/
+
+# Índices de inteligencia de código y caches de herramientas
+.codegraph/
+.pytest_cache/

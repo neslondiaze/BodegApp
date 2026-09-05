@@ -15,21 +15,24 @@
 | F0-06 | Carlos | Documentación | Estructura de documentación del proyecto (README, guías de contribución, estándares) | 🔵 En Revisión | 12/09/2026 |
 | F0-07 | Lead_Blue | Blue Team | Revisar y aprobar diseño Zero Trust de F0-02 antes de implementación | 🟢 Completado | 09/09/2026 |
 | F0-08 | Emilio | QA | Plan maestro de pruebas + estrategia de testing por fase | 🔵 En Revisión | 15/09/2026 |
+| F0-09 | Nordanis | UI/UX | Diseño de Ticket Fiscal (M-16) en design-system.md §10: formatos 58/80mm, campos fiscales VE, reimpresión marcada y anulación | 🟡 En Progreso | 10/09/2026 |
 
-> **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-03 y F0-04 completados y auditados por QA (42/42 tests, 97% cobertura). F0-07 gate cerrado: Lead_Blue aprobó F0-02 con 6 observaciones no bloqueantes (BT-01..BT-06, registro abajo). Deuda F0-01: 10 ítems abiertos (OBS-06, OBS-09 del lote 1; OBS-07, OBS-08, OBS-10, OBS-11, OBS-12, O-N-003, O-N-004, R-03 del lote 2) — OBS-04 y OBS-05 remediados y verificados por QA esta sesión. Pendiente de decisión del inversor: O-N-005 (Ticket Fiscal).
+> **Notas de consolidación (04/09/2026, Cristian):** Fase 0 consolidada a `main` vía merges `--no-ff` por célula (7 fusiones) tras autorización del inversor. F0-03 y F0-04 completados y auditados por QA (42/42 tests, 97% cobertura). F0-07 gate cerrado: Lead_Blue aprobó F0-02 con 6 observaciones no bloqueantes (BT-01..BT-06, registro abajo). Deuda F0-01: 10 ítems abiertos (OBS-06, OBS-09 del lote 1; OBS-07, OBS-08, OBS-10, OBS-11, OBS-12, O-N-003, O-N-004, R-03 del lote 2) — OBS-04 y OBS-05 remediados y verificados por QA esta sesión. O-N-005 resuelto 04/09/2026 (noche): el inversor autorizó soportar Ticket Fiscal como M-16 — diseño delegado a Nordanis (F0-09).
 
 > **Registro de observaciones Blue Team — gate F0-07/F0-02 (Lead_Blue, 04/09/2026):** Veredicto ⚠️ APROBADO CON OBSERVACIONES. Ninguna bloquea producción.
 
 | Ref | Descripción | Severidad | Acción correctiva | Responsable | Estado |
 |-----|-------------|-----------|-------------------|-------------|--------|
-| BT-01 | Sin `.dockerignore` en frontend/ y backend/; `COPY . .` arrastra node_modules al build | Media | Crear .dockerignore en ambos contextos | Alfredo | 🔴 |
-| BT-02 | `secrets/postgres_password.txt` con modo 0644 en host (resto 0600) | Media | chmod 0600 + documentar provisión | Alfredo | 🔴 |
-| BT-03 | `/tmp` del api sin noexec pese a staging de claves en /tmp/keys | Media | Separar staging a /run/keys noexec | Alfredo | 🔴 |
-| BT-04 | uvicorn `--forwarded-allow-ips '*'` confía en cualquier peer (mitigado por segmentación) | Media | Restringir a IP del proxy | Alfredo | 🔴 |
-| BT-05 | CSP con `style-src 'unsafe-inline'` | Baja | Migrar a nonce (fase posterior) | Alfredo | 🔴 |
-| BT-06 | Masters arrancan como root antes del drop (patrón documentado) | Baja | Verificar runtime en F0-08 | Alfredo + Emilio | 🔴 |
+| BT-01 | Sin `.dockerignore` en frontend/ y backend/; `COPY . .` arrastra node_modules al build | Media | Crear .dockerignore en ambos contextos | Alfredo | 🟡 |
+| BT-02 | `secrets/postgres_password.txt` con modo 0644 en host (resto 0600) | Media | chmod 0600 + documentar provisión | Alfredo | 🟡 |
+| BT-03 | `/tmp` del api sin noexec pese a staging de claves en /tmp/keys | Media | Separar staging a /run/keys noexec | Alfredo | 🟡 |
+| BT-04 | uvicorn `--forwarded-allow-ips '*'` confía en cualquier peer (mitigado por segmentación) | Media | Restringir a IP del proxy | Alfredo | 🟡 |
+| BT-05 | CSP con `style-src 'unsafe-inline'` | Baja | Migrar a nonce (fase posterior) | Alfredo | 🟡 |
+| BT-06 | Masters arrancan como root antes del drop (patrón documentado) | Baja | Verificar runtime en F0-08 | Alfredo + Emilio | 🟡 |
 
 > Condición de Lead_Blue: BT-01 y BT-02 deben resolverse **antes del deploy a producción**. BT-04 sugerido al backlog de hardening F1.
+
+> **Delegaciones 04/09/2026 (noche, Cristian — autorizadas por el inversor):** F0-09 diseño M-16 §10 (Nordanis), remediación BT-01..BT-06 (Alfredo), arranque F1-03 (Nelson). Cada subagente trabaja en worktree propio sobre su rama feature; el merge a main requiere QA de Emilio aprobado.
 
 ## Fase 1 — Núcleo de Inventario
 
@@ -37,7 +40,7 @@
 |-----|------------------|-----|----------------|--------|--------------|
 | F1-01 | Nelson | Backend | API CRUD Productos (M-02) con aislamiento tenant | 🔴 | 26/09/2026 |
 | F1-02 | Nelson | Backend | API CRUD Proveedores (M-03) | 🔴 | 30/09/2026 |
-| F1-03 | Nelson | Backend | API Configuración de Tienda (M-01) | 🔴 | 24/09/2026 |
+| F1-03 | Nelson | Backend | API Configuración de Tienda (M-01) | 🟡 En Progreso | 24/09/2026 |
 | F1-04 | Nelson | Backend | Motor de alertas de mínimo de stock (M-06) | 🔴 | 03/10/2026 |
 | F1-05 | Noris | Frontend | Pantallas CRUD Productos/Proveedores/Tienda consumiendo APIs F1-01..03 | 🔴 | 10/10/2026 |
 | F1-06 | Noris | Frontend | UI de alertas de mínimo (M-06) | 🔴 | 14/10/2026 |
