@@ -4,10 +4,14 @@
 > **Fecha:** 05/09/2026
 > **Destinatario:** Alfredo (DevOps, Célula Díaz Tech)
 > **Referencia:** Autorización del inversor — Opción A (Staging/Demo online), sesión 05/09/2026
-> **Prioridad:** ALTA — visibilidad de avance para el inversor
+> **Prioridad:** 🔴 CRÍTICA — directiva del inversor: puesta online INMEDIATA
 > **Nueva referencia de tarea:** ST-01
 
 ---
+
+## ⚠️ ACTUALIZACIÓN URGENTE (05/09/2026 — misma fecha, directiva del inversor)
+
+El inversor notificó que **la puesta online es de inmediato**. La fecha límite original del 08/09 queda SIN EFECTO: ST-01 vence **HOY 05/09/2026**. Si algún elemento del alcance (ej. mecanismo de acceso restringido) impide el deploy hoy, desplegá primero lo esencial y reportá el delta inmediatamente — no detengas el deploy por perfeccionismo.
 
 ## 1. Objetivo
 
@@ -42,7 +46,7 @@ Desplegar el stack completo de BodegApp en un entorno **staging online** con acc
 
 ## 5. Fecha límite
 
-**Propuesta: 08/09/2026** (3 días hábiles). Si el host de staging o el mecanismo de acceso requieren aprobación del inversor, escalá inmediatamente — no esperes al vencimiento.
+**HOY 05/09/2026 (INMEDIATO)** — directiva del inversor. ST-02 (smoke test de Emilio) se ejecuta apenas reportes el deploy operativo.
 
 ## 6. Protocolo de escalamiento
 

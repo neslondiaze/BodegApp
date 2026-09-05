@@ -31,9 +31,9 @@ El staging muestra el **estado real del producto hoy**: autenticación completa 
 
 | Hito | Responsable | Fecha |
 |------|-------------|-------|
-| Deploy staging operativo | Alfredo (DevOps) | 08/09/2026 |
-| Smoke test de calidad | Emilio (QA) | 09/09/2026 |
-| **Entrega de acceso al inversor** | Cristian (Project Director) | **Inmediatamente tras el smoke test** |
+| Deploy staging operativo | Alfredo (DevOps) | **HOY 05/09/2026 (inmediato, por su directiva)** |
+| Smoke test de calidad | Emilio (QA) | Inmediatamente tras el deploy |
+| **Entrega de acceso al inversor** | Cristian (Project Director) | **Hoy, tras el smoke test** |
 | Diseño Ticket Fiscal (M-16) | Nordanis (UI/UX) | 10/09/2026 |
 | APIs Fase 1 (CRUDs + alertas) | Nelson (Backend) | 24/09 – 03/10/2026 |
 

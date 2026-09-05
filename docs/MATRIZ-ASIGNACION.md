@@ -36,7 +36,8 @@
 
 > **Recordatorios formales de arranque 05/09/2026 (Cristian):** Emitidos a Alfredo (BT-01..06, worktree sin actividad) y Nordanis (F0-09, worktree sin actividad) — verificados worktrees limpios sin commits. Documentos: `docs/plantillas/RECORDATORIO-ARRANQUE-ALFREDO.md` y `docs/plantillas/RECORDATORIO-ARRANQUE-NORDANIS.md`. Ambos con fecha límite 10/09/2026.
 
-> **Staging online autorizado 05/09/2026 (Cristian — autorización del inversor, Opción A):** ST-01 deploy staging restringido (Alfredo, incluye BT-01/BT-02, vence 08/09) + ST-02 smoke test post-deploy (Emilio, 09/09). NO es producción: TLS dev, datos de prueba. La ruta a producción formal sigue siendo F4-06 con gates F4-01/F4-02. Documento: `docs/plantillas/DELEGACION-ST01-STAGING-ALFREDO.md`.
+> **Staging online autorizado 05/09/2026 (Cristian — autorización del inversor, Opción A):** ST-01 deploy staging restringido (Alfredo, incluye BT-01/BT-02) + ST-02 smoke test post-deploy (Emilio). NO es producción: TLS dev, datos de prueba. La ruta a producción formal sigue siendo F4-06 con gates F4-01/F4-02. Documento: `docs/plantillas/DELEGACION-ST01-STAGING-ALFREDO.md`.
+> **⚠️ Directiva del inversor 05/09/2026 (misma fecha, posterior):** la puesta online es **DE INMEDIATO** — ST-01 vence HOY 05/09. Cronograma original (08-09/09) anulado.
 
 ## Fase 1 — Núcleo de Inventario
 
@@ -103,8 +104,8 @@
 
 | Ref | Recurso | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|---------|-----|----------------|--------|--------------|
-| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟡 En Progreso | 08/09/2026 |
-| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🔴 Pendiente (tras ST-01) | 09/09/2026 |
+| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟡 En Progreso | **HOY 05/09 (inmediato)** |
+| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🔴 Pendiente (tras ST-01) | Inmediatamente tras ST-01 |
 
 ## Dependencias Críticas
 
