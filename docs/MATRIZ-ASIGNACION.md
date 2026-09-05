@@ -49,9 +49,9 @@
 | F1-04 | Nelson | Backend | Motor de alertas de mínimo de stock (M-06) | 🔴 | 03/10/2026 |
 | F1-05 | Noris | Frontend | Pantallas CRUD Productos/Proveedores/Tienda consumiendo APIs F1-01..03 | 🟡 En Progreso — arranque parcial 05/09: pantalla Configuración de Tienda sobre API F1-03 (`docs/plantillas/DELEGACION-F1-05-INVENTARIO-NORIS.md`) | 10/10/2026 |
 | F1-06 | Noris | Frontend | UI de alertas de mínimo (M-06) | 🔴 | 14/10/2026 |
-| F1-07 | Morloy | Data Science | Reporte de compras (M-07): análisis de stock/mínimos, diseño de dashboard | 🔴 | 10/10/2026 |
-| F1-08 | Javier | Java/JVM | Motor de reportes JasperReports para reporte de compras PDF (M-07) | 🔴 | 14/10/2026 |
-| F1-09 | Emilio | QA | Suite de pruebas Fase 1 (CRUDs, alertas, multi-tenant) | 🔴 | 17/10/2026 |
+| F1-07 | Morloy | Data Science | Reporte de compras (M-07): análisis de stock/mínimos, diseño de dashboard | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 10/10/2026 |
+| F1-08 | Javier | Java/JVM | Motor de reportes JasperReports para reporte de compras PDF (M-07) | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 14/10/2026 |
+| F1-09 | Emilio | QA | Suite de pruebas Fase 1 (CRUDs, alertas, multi-tenant) | 🔴 (arranca al liberarse de ST-02 + auditoría F1-03) | 17/10/2026 |
 
 ## Fase 2 — Diferenciadores de Negocio
 
@@ -64,8 +64,8 @@
 | F2-05 | Noris | Frontend | Pantallas Fiados + Historial + Tipo de cambio (M-08/09/12) | 🔴 | 07/11/2026 |
 | F2-06 | Noris | Frontend | UI configuración de scraping (M-13) | 🔴 | 10/11/2026 |
 | F2-07 | Nordanis | UI/UX | Diseño de plantillas de promociones WhatsApp (M-14) | 🔴 | 07/11/2026 |
-| F2-08 | Orlando | Marketing | Estrategia de contenido promocional + copy de plantillas (M-14) | 🔴 | 07/11/2026 |
-| F2-09 | Sebastian | IA/MLOps | Evaluación de integración WhatsApp Business API para envío de promociones (M-14) | 🔴 | 10/11/2026 |
+| F2-08 | Orlando | Marketing | Estrategia de contenido promocional + copy de plantillas (M-14) | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 07/11/2026 |
+| F2-09 | Sebastian | IA/MLOps | Evaluación de integración WhatsApp Business API para envío de promociones (M-14) | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 10/11/2026 |
 | F2-10 | Emilio | QA | Suite de pruebas Fase 2 (fiados, scraping, promociones) | 🔴 | 14/11/2026 |
 
 ## Fase 3 — Hardware y Tiempo Real
@@ -85,8 +85,8 @@
 |-----|------------------|-----|----------------|--------|--------------|
 | F4-01 | Lead_Red | Red Team | Pentest completo pre-lanzamiento (Apollo Ultra) | 🔴 | 19/12/2026 |
 | F4-02 | Lead_Blue | Blue Team | Hardening final + validación Sentinel Shield | 🔴 | 19/12/2026 |
-| F4-03 | Wilfredo | Legal/Compliance | Revisión GDPR/CCPA/PI: datos de fiados (deudores) y clientes WhatsApp | 🔴 | 12/12/2026 |
-| F4-04 | Ahides | Finanzas | Modelo de costos + proyección cash flow del producto | 🔴 | 12/12/2026 |
+| F4-03 | Wilfredo | Legal/Compliance | Revisión GDPR/CCPA/PI: datos de fiados (deudores) y clientes WhatsApp | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1, marco preliminar) | 12/12/2026 |
+| F4-04 | Ahides | Finanzas | Modelo de costos + proyección cash flow del producto | 🟡 En Progreso (adelantada 05/09 — Orden de Adelanto Ola 1) | 12/12/2026 |
 | F4-05 | Emilio | QA | UAT integral + informe de calidad final | 🔴 | 22/12/2026 |
 | F4-06 | Alfredo | DevOps | Despliegue a producción + plan de rollback | 🔴 | 24/12/2026 |
 
@@ -94,11 +94,11 @@
 
 | Ref | Recurso | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|---------|-----|----------------|--------|--------------|
-| T-01 | Carlos | Documentación | Guías de integración backend↔frontend, estándares de código | 🔴 | Continuo |
-| T-02 | Fernanda | Ofimática | Plantillas de reportes al inversor (automatización Notion/Drive) | 🔴 | Continuo |
-| T-03 | Willian | AWS Cloud | Evaluación de infraestructura cloud para producción (si el inversor requiere) | 🔴 | Continuo |
+| T-01 | Carlos | Documentación | Guías de integración backend↔frontend, estándares de código | 🟡 En Progreso (activada 05/09 — Orden de Adelanto Ola 1: guía Fase 1, parcial 12/09) | Continuo |
+| T-02 | Fernanda | Ofimática | Plantillas de reportes al inversor (automatización Notion/Drive) | 🟡 En Progreso (activada 05/09 — Orden de Adelanto Ola 1: parcial 12/09) | Continuo |
+| T-03 | Willian | AWS Cloud | Evaluación de infraestructura cloud para producción (si el inversor requiere) | 🟡 En Progreso (activada 05/09 — Orden de Adelanto Ola 1: informe 26/09) | Continuo |
 | T-04 | Tosta | COBOL/Clipper | Consultoría de migración de datos legacy de bodegas (si aplica) | 🔴 | Continuo |
-| T-05 | Monitor_Agent (Blue) | Vigilancia | Monitoreo continuo de logs/telemetría desde primer despliegue | 🔴 | Continuo |
+| T-05 | Monitor_Agent (Blue) | Vigilancia | Monitoreo continuo de logs/telemetría desde primer despliegue | 🟡 Activo (staging online desde 05/09) | Continuo |
 
 ## Staging Online (Autorizado por el inversor — 05/09/2026)
 
@@ -106,6 +106,7 @@
 |-----|---------|-----|----------------|--------|--------------|
 | ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟢 Completado (05/09 — commit `c6b48ab`, pendiente de merge tras ST-02) | 05/09/2026 ✅ |
 | ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🟡 En Progreso (delegación emitida 05/09 — `docs/plantillas/DELEGACION-ST02-SMOKE-TEST-EMILIO.md`) | HOY 05/09 (inmediato) |
+| SR-01 | Lead_Blue | Blue Team | Revisión de seguridad del patrón de aislamiento tenant en F1-03 (patrón que replica F1-01+) — solo lectura, no bloquea merge | 🟡 En Progreso (activada 05/09 — Orden de Adelanto Ola 1) | 08/09/2026 |
 
 ## Dependencias Críticas
 
