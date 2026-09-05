@@ -1,0 +1,54 @@
+# =============================================================================
+# BodegApp — backend build context exclusions (BT-01, ST-01)
+# Keeps `COPY . .` in Dockerfile.api from shipping local artifacts
+# (.venv, __pycache__, tests, docs) into the image build context.
+# =============================================================================
+
+# Python runtime artifacts — never ship bytecode or local virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.python-version
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases and secrets — must never enter the build context
+*.sqlite3
+*.db
+.env
+.env.*
+secrets/
+*.pem
+*.key
+
+# Packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+.obsidian/
+.atl/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Code intelligence indexes
+.codegraph/
+
+# Docs and local notebooks — not needed at runtime
+docs/
+*.md
+!README.md

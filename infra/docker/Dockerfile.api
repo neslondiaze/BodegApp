@@ -49,7 +49,11 @@ COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 
 # Application code (assumed layout: backend/app/, backend/requirements.txt).
+# migrations/ + alembic.ini are baked in so the entrypoint can apply them at
+# startup (no other actor runs alembic; the compose stack has no migrate job).
 COPY app/ /app/app/
+COPY migrations/ /app/migrations/
+COPY alembic.ini /app/alembic.ini
 
 # Runtime ownership: app code owned by root, not writable by appuser.
 RUN chown -R root:root /app \
@@ -62,11 +66,16 @@ EXPOSE 8000
 STOPSIGNAL SIGTERM
 
 # Privilege-drop pattern: the container starts as root ONLY to stage the
-# root-owned Docker secrets, then drops to the unprivileged appuser via
-# setpriv before serving. Compose file-based secrets (non-swarm) mount with
-# host ownership and mode 0600, unreadable by the app user, so the entrypoint
-# copies them to an appuser-owned directory in /tmp (tmpfs) with tight modes
-# and re-points the *_FILE env vars. Secret VALUES never appear in env vars.
+# root-owned Docker secrets, apply Alembic migrations, then drops to the
+# unprivileged appuser via setpriv before serving. Compose file-based
+# secrets (non-swarm) mount with host ownership and mode 0600, unreadable
+# by the app user, so the entrypoint copies them to an appuser-owned
+# directory in /tmp (tmpfs) with tight modes. The backend reads its
+# config via BODEGAPP_* env vars (pydantic-settings), so the DB URL is
+# assembled here from the staged secret file — the password value never
+# lives in the compose file nor the image, only in process env of the
+# runtime user (see hallazgo ST-01-03: backend has no *_FILE support for
+# the DB URL; recommend backend team adds it).
 # NOTE: written as a classic RUN (not COPY heredoc) for compatibility with
 # legacy builders (no BuildKit requirement), and with explicit
 # mkdir/chown/cp steps (coreutils `install`/`chmod` misreport EPERM/ENOENT on
@@ -84,10 +93,17 @@ RUN printf '%s\n' \
     '  cp /run/secrets/$s /tmp/keys/$s' \
     '  chown appuser:appgroup /tmp/keys/$s' \
     'done' \
+    '# URL-encode the password (openssl base64 can emit + / = chars).' \
+    'PGPASS_ENC=$(python -c "import urllib.parse,sys;print(urllib.parse.quote(sys.stdin.read().strip()))" < /tmp/keys/postgres_password)' \
+    'export BODEGAPP_DATABASE_URL="postgresql+asyncpg://${POSTGRES_USER:-bodegapp}:${PGPASS_ENC}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-bodegapp}"' \
+    '# Apply Alembic migrations before the privilege drop. Idempotent:' \
+    '# alembic tracks applied revisions in the database itself.' \
+    'alembic upgrade head' \
     'exec setpriv --reuid=appuser --regid=appgroup --init-groups --no-new-privs \' \
-    '  env POSTGRES_PASSWORD_FILE=/tmp/keys/postgres_password \' \
-    '      JWT_PRIVATE_KEY_FILE=/tmp/keys/jwt_private_key \' \
-    '      JWT_PUBLIC_KEY_FILE=/tmp/keys/jwt_public_key \' \
+    '  env HOME=/tmp \' \
+    '      BODEGAPP_DATABASE_URL="$BODEGAPP_DATABASE_URL" \' \
+    '      BODEGAPP_JWT_PRIVATE_KEY_PATH=/tmp/keys/jwt_private_key \' \
+    '      BODEGAPP_JWT_PUBLIC_KEY_PATH=/tmp/keys/jwt_public_key \' \
     "  python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips '*'" \
     > /usr/local/bin/entrypoint.sh \
     && chmod 750 /usr/local/bin/entrypoint.sh
