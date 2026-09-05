@@ -104,8 +104,8 @@
 
 | Ref | Recurso | Rol | Tarea Asignada | Estado | Fecha Límite |
 |-----|---------|-----|----------------|--------|--------------|
-| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟡 En Progreso | **HOY 05/09 (inmediato)** |
-| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🔴 Pendiente (tras ST-01) | Inmediatamente tras ST-01 |
+| ST-01 | Alfredo | DevOps | Deploy staging online restringido: stack completo, TLS dev, BT-01/BT-02 incluidos, datos de prueba | 🟢 Completado (05/09 — commit `c6b48ab`, pendiente de merge tras ST-02) | 05/09/2026 ✅ |
+| ST-02 | Emilio | QA | Smoke test post-deploy sobre staging online (login/refresh/logout/dashboard) | 🟡 En Progreso (delegación emitida 05/09 — `docs/plantillas/DELEGACION-ST02-SMOKE-TEST-EMILIO.md`) | HOY 05/09 (inmediato) |
 
 ## Dependencias Críticas
 
