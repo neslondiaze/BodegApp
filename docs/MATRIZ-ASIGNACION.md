@@ -34,6 +34,8 @@
 
 > **Delegaciones 04/09/2026 (noche, Cristian — autorizadas por el inversor):** F0-09 diseño M-16 §10 (Nordanis), remediación BT-01..BT-06 (Alfredo), arranque F1-03 (Nelson). Cada subagente trabaja en worktree propio sobre su rama feature; el merge a main requiere QA de Emilio aprobado.
 
+> **Recordatorios formales de arranque 05/09/2026 (Cristian):** Emitidos a Alfredo (BT-01..06, worktree sin actividad) y Nordanis (F0-09, worktree sin actividad) — verificados worktrees limpios sin commits. Documentos: `docs/plantillas/RECORDATORIO-ARRANQUE-ALFREDO.md` y `docs/plantillas/RECORDATORIO-ARRANQUE-NORDANIS.md`. Ambos con fecha límite 10/09/2026.
+
 ## Fase 1 — Núcleo de Inventario
 
 | Ref | Recurso / Célula | Rol | Tarea Asignada | Estado | Fecha Límite |
