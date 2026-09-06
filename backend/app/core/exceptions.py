@@ -123,4 +123,3 @@ class ValidacionError(ApiError):
             codigo="VALIDACION_ERROR",
             mensaje=mensaje,
         )
->>>>>>> b7a2ac9 (feat(productos): API CRUD Productos M-02 (F1-01) — aislamiento tenant, RBAC provisional, patrón SR-01 (autor: Nelson, Backend))
