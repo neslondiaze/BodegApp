@@ -1,12 +1,14 @@
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
     ForeignKey,
+    Numeric,
     String,
     UniqueConstraint,
     Uuid,
@@ -21,6 +23,15 @@ class UserRole(str, enum.Enum):
     owner = "owner"
     admin = "admin"
     staff = "staff"
+
+
+class UnidadMedida(str, enum.Enum):
+    unidad = "unidad"
+    kg = "kg"
+    litro = "litro"
+    metro = "metro"
+    paquete = "paquete"
+    caja = "caja"
 
 
 class Tenant(Base):
@@ -106,6 +117,70 @@ class StoreConfig(Base):
     )
 
     tenant: Mapped[Tenant] = relationship(back_populates="store_config")
+
+
+class Proveedor(Base):
+    """Provider placeholder (identity + tenant only) for the productos
+    FK. The full provider model/CRUD is F1-02 (30/09) — this exists so
+    productos can carry the relation now without a later schema rework.
+    """
+
+    __tablename__ = "proveedores"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+
+class Producto(Base):
+    """Catalog item (M-02). Strictly scoped to one tenant: every query
+    filters by tenant_id unconditionally, and sku is unique per tenant
+    (uq_producto_tenant_sku), never globally."""
+
+    __tablename__ = "productos"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "sku", name="uq_producto_tenant_sku"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    nombre: Mapped[str] = mapped_column(String(255), nullable=False)
+    sku: Mapped[str] = mapped_column(String(100), nullable=False)
+    precio: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    stock_actual: Mapped[int] = mapped_column(nullable=False, default=0)
+    stock_minimo: Mapped[int] = mapped_column(nullable=False, default=0)
+    proveedor_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("proveedores.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    unidad_medida: Mapped[UnidadMedida] = mapped_column(
+        Enum(UnidadMedida, native_enum=False, length=20),
+        nullable=False,
+        default=UnidadMedida.unidad,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
 
 class RefreshToken(Base):

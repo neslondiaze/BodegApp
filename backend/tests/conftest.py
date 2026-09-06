@@ -248,6 +248,20 @@ def tienda_payload(**overrides) -> dict:
     return payload
 
 
+def producto_payload(**overrides) -> dict:
+    """Default valid producto request body for M-02 (F1-01) tests."""
+    payload = {
+        "nombre": "Harina de Maíz",
+        "sku": "HARINA-01",
+        "precio": "25.50",
+        "stock_actual": 100,
+        "stock_minimo": 10,
+        "unidad_medida": "kg",
+    }
+    payload.update(overrides)
+    return payload
+
+
 def sign_with_attacker_key(payload: dict) -> str:
     """Sign a token with the attacker's private key (QA B2)."""
     import jwt

@@ -106,3 +106,20 @@ class RecursoNoEncontradoError(ApiError):
             codigo="RECURSO_NO_ENCONTRADO",
             mensaje=mensaje or "El recurso solicitado no existe en esta tienda.",
         )
+
+
+class ValidacionError(ApiError):
+    """422 for domain-level validation the schema layer cannot express.
+
+    E.g. duplicate sku within the tenant: the pre-check gives a precise
+    message, and the IntegrityError fallback (concurrent race, fenced
+    by the DB constraint) maps to this same cataloged error instead of
+    leaking a raw 500 (BT-SR01-06).
+    """
+
+    def __init__(self, mensaje: str) -> None:
+        super().__init__(
+            status_code=422,
+            codigo="VALIDACION_ERROR",
+            mensaje=mensaje,
+        )
