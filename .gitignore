@@ -46,3 +46,7 @@ htmlcov/
 # Índices de inteligencia de código y caches de herramientas
 .codegraph/
 .pytest_cache/
+
+# Artefactos de tooling Python locales
+.python-version
+*.egg-info/
