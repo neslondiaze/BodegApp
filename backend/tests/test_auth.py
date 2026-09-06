@@ -629,3 +629,60 @@ class TestRefreshRotation:
 
         rows = list((await db_session.execute(RefreshToken.__table__.select())).mappings())
         assert all(r["revoked_at"] is not None for r in rows)
+
+
+# ---------------------------------------------------------------------------
+# BT-SR01-01: deactivated tenant must lose access immediately
+# ---------------------------------------------------------------------------
+
+
+class TestTenantDeactivadoBT_SR01_01:
+    """SR-01 (Lead_Blue), hallazgo Alta: get_authenticated_user and
+    refresh() did not verify tenant.is_active — a deactivated tenant
+    kept API access for the access-token lifetime and could re-mint
+    tokens via refresh for up to 7 days. These are the two coverage
+    gaps SR-01 reported."""
+
+    async def _deactivate_tenant(self, db_session):
+        from sqlalchemy import update as sa_update
+
+        await db_session.execute(
+            sa_update(Tenant).values(is_active=False)
+        )
+        await db_session.commit()
+
+    async def test_access_token_rejected_on_business_endpoint(
+        self, app_client, db_session
+    ):
+        """Live access token + deactivated tenant → 401 TOKEN_INVALIDO
+        on a business endpoint (the /auth/me identity endpoint)."""
+        await seed_tenant_with_owner(db_session)
+        tokens = await do_login(app_client)
+        # Sanity: token works before deactivation.
+        ok = await app_client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        assert ok.status_code == 200
+
+        await self._deactivate_tenant(db_session)
+        response = await app_client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        assert response.status_code == 401
+        assert response.json()["error"]["codigo"] == "TOKEN_INVALIDO"
+
+    async def test_refresh_rejected_for_deactivated_tenant(
+        self, app_client, db_session
+    ):
+        """Deactivated tenant cannot re-mint tokens via /auth/refresh."""
+        await seed_tenant_with_owner(db_session)
+        tokens = await do_login(app_client)
+
+        await self._deactivate_tenant(db_session)
+        response = await app_client.post(
+            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+        )
+        assert response.status_code == 401
+        assert response.json()["error"]["codigo"] == "REFRESH_INVALIDO"

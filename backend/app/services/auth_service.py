@@ -149,7 +149,8 @@ async def refresh(
         raise RefreshInvalidoError()
 
     user = await db.get(User, uuid.UUID(payload["sub"]))
-    if user is None or not user.is_active:
+    tenant = await db.get(Tenant, user.tenant_id) if user is not None else None
+    if user is None or tenant is None or not user.is_active or not tenant.is_active:
         raise RefreshInvalidoError()
 
     new_access = create_access_token(
@@ -255,7 +256,8 @@ async def get_authenticated_user(db: AsyncSession, token: str) -> AuthenticatedU
     """Validate a work token and load its identity (tenant from the JWT)."""
     payload = decode_token_of_type(token, TOKEN_TYPE_ACCESS)
     user = await db.get(User, uuid.UUID(payload["sub"]))
-    if user is None or not user.is_active:
+    tenant = await db.get(Tenant, user.tenant_id) if user is not None else None
+    if user is None or tenant is None or not user.is_active or not tenant.is_active:
         raise TokenInvalidoError()
     return AuthenticatedUser(
         id=user.id,
