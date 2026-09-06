@@ -125,7 +125,9 @@ def _use_test_keys(monkeypatch, tmp_path):
 
     monkeypatch.setenv("BODEGAPP_JWT_PRIVATE_KEY_PATH", str(private))
     monkeypatch.setenv("BODEGAPP_JWT_PUBLIC_KEY_PATH", str(public))
-    monkeypatch.setenv("BODEGAPP_REFRESH_ROTATION_ENABLED", "false")
+    # Refresh rotation is intentionally NOT pinned here: tests exercise the
+    # production default (enabled, QA-ST02-01). The kill-switch mode is
+    # opted into explicitly by the tests that cover it.
 
     from app.core.config import get_settings
 
