@@ -5,12 +5,11 @@ Dual-token model (contract §1):
 - Contractor token (refresh, typ="refresh"): long-lived, ONLY valid at
   /auth/refresh and /auth/logout; stored hashed by jti in refresh_tokens.
 
-Refresh rotation (contract T3) is implemented but gated behind
-BODEGAPP_REFRESH_ROTATION_ENABLED because the current frontend keeps
-the OLD refresh token after a successful refresh (apiClient.ts:81-87
-discards the rotated one), so strict rotation would kill every session
-at the second refresh. When rotation is enabled, reuse of a rotated
-token revokes the whole descendant chain (theft detection).
+Refresh rotation (contract T3) is enabled by default (QA-ST02-01).
+The legacy flag BODEGAPP_REFRESH_ROTATION_ENABLED=false remains as an
+operational kill-switch. When rotation is enabled, each refresh issues a
+new contractor token, revokes the old one, and reuse of a rotated token
+revokes the whole descendant chain (theft detection).
 """
 
 import hashlib
@@ -161,7 +160,9 @@ async def refresh(
     )
 
     if not settings.refresh_rotation_enabled:
-        # Frontend today keeps the old contractor token (apiClient.ts:81-87).
+        # Rotation disabled (operational kill-switch): the same contractor
+        # token is returned. Only for legacy clients that cannot persist a
+        # rotated token — the current frontend persists it (QA-F04-03).
         return RefreshResponse(
             access_token=new_access,
             refresh_token=refresh_token,

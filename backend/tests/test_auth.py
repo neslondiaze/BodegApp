@@ -15,6 +15,7 @@ from httpx import AsyncClient
 
 from app.core import security
 from app.models import RefreshToken, Tenant, User, UserRole
+from app.services.auth_service import hash_refresh_token_id
 from tests.conftest import (
     ATTACKER_PRIVATE_KEY,
     PASSWORD,
@@ -159,9 +160,15 @@ class TestLogin:
 
 
 class TestRefresh:
-    async def test_refresh_returns_new_access_token(self, seeded_client):
-        tokens = await do_login(seeded_client)
+    async def test_refresh_kill_switch_returns_same_rt(self, seeded_client, monkeypatch):
+        """Operational kill-switch (BODEGAPP_REFRESH_ROTATION_ENABLED=false):
+        the same contractor token is returned — legacy-client mode."""
+        monkeypatch.setenv("BODEGAPP_REFRESH_ROTATION_ENABLED", "false")
+        from app.core.config import get_settings
 
+        get_settings.cache_clear()
+
+        tokens = await do_login(seeded_client)
         response = await seeded_client.post(
             "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
         )
@@ -566,57 +573,66 @@ class TestTenantIsolation:
 
 
 # ---------------------------------------------------------------------------
-# Rotation (contract T3) — enabled mode
+# Rotation (contract T3) — enabled by default since QA-ST02-01
 # ---------------------------------------------------------------------------
 
 
 class TestRefreshRotation:
-    async def _login_and_get_refresh(self, app_client) -> str:
+    async def _login_and_get_tokens(self, app_client) -> dict:
         login = await app_client.post("/api/v1/auth/login", json=login_payload())
         assert login.status_code == 200, login.text
-        return login.json()["refresh_token"]
+        return login.json()
 
-    async def test_rotation_issues_new_refresh_and_revokes_old(
-        self, app_client, db_session, monkeypatch
-    ):
-        monkeypatch.setenv("BODEGAPP_REFRESH_ROTATION_ENABLED", "true")
-        from app.core.config import get_settings
-
-        get_settings.cache_clear()
-        await seed_tenant_with_owner(db_session)
-
-        old_refresh = await self._login_and_get_refresh(app_client)
-        refresh = await app_client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
+    def _jti(self, token: str) -> str:
+        payload = jwt.decode(
+            token, security.get_jwt_keys().public_pem, algorithms=["RS256"]
         )
-        assert refresh.status_code == 200
-        new_refresh = refresh.json()["refresh_token"]
-        assert new_refresh != old_refresh
+        return payload["jti"]
+
+    async def test_rotation_enabled_by_default_returns_new_rt_with_new_jti(
+        self, app_client, db_session
+    ):
+        """QA-ST02-01: rotation is the default — no env override, the
+        response carries a NEW refresh token (distinct jti) plus a new
+        access token."""
+        await seed_tenant_with_owner(db_session)
+        tokens = await self._login_and_get_tokens(app_client)
+
+        response = await app_client.post(
+            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["access_token"]
+        assert data["access_token"] != tokens["access_token"]
+        assert data["refresh_token"] != tokens["refresh_token"]
+        assert self._jti(data["refresh_token"]) != self._jti(tokens["refresh_token"])
 
         rows = list((await db_session.execute(RefreshToken.__table__.select())).mappings())
-        assert len(rows) == 2
-        revoked = [r for r in rows if r["revoked_at"] is not None]
-        assert len(revoked) == 1  # old token rotated (revoked), new one active
+        assert len(rows) == 2  # old row + successor row
+        active = [r for r in rows if r["revoked_at"] is None]
+        assert len(active) == 1
+        assert active[0]["token_hash"] == hash_refresh_token_id(
+            self._jti(data["refresh_token"])
+        )
 
-    async def test_reuse_of_rotated_token_revokes_chain(
-        self, app_client, db_session, monkeypatch
+    async def test_reuse_of_rotated_rt_rejected_and_revokes_chain(
+        self, app_client, db_session
     ):
-        monkeypatch.setenv("BODEGAPP_REFRESH_ROTATION_ENABLED", "true")
-        from app.core.config import get_settings
-
-        get_settings.cache_clear()
+        """QA-ST02-01: the rotated (old) RT is dead after a refresh —
+        replaying it yields 401 REFRESH_INVALIDO and revokes the whole
+        chain, including the legitimate successor (theft detection)."""
         await seed_tenant_with_owner(db_session)
+        tokens = await self._login_and_get_tokens(app_client)
 
-        old_refresh = await self._login_and_get_refresh(app_client)
         first = await app_client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
+            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
         )
         assert first.status_code == 200
         new_refresh = first.json()["refresh_token"]
 
-        # Replay the OLD token → theft detected → whole chain revoked.
         replay = await app_client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
+            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
         )
         assert replay.status_code == 401
         assert replay.json()["error"]["codigo"] == "REFRESH_INVALIDO"
@@ -626,6 +642,28 @@ class TestRefreshRotation:
             "/api/v1/auth/refresh", json={"refresh_token": new_refresh}
         )
         assert after_replay.status_code == 401
+        assert after_replay.json()["error"]["codigo"] == "REFRESH_INVALIDO"
+
+        rows = list((await db_session.execute(RefreshToken.__table__.select())).mappings())
+        assert all(r["revoked_at"] is not None for r in rows)
+
+    async def test_logout_with_rotated_rt_is_idempotent(self, app_client, db_session):
+        """QA-ST02-01: logout with the successor RT returns 200 twice —
+        idempotent, and no active rows remain."""
+        await seed_tenant_with_owner(db_session)
+        tokens = await self._login_and_get_tokens(app_client)
+        refresh = await app_client.post(
+            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+        )
+        assert refresh.status_code == 200
+        new_refresh = refresh.json()["refresh_token"]
+
+        for _ in range(2):
+            logout = await app_client.post(
+                "/api/v1/auth/logout", json={"refresh_token": new_refresh}
+            )
+            assert logout.status_code == 200
+            assert logout.json() == {"mensaje": "Sesión cerrada"}
 
         rows = list((await db_session.execute(RefreshToken.__table__.select())).mappings())
         assert all(r["revoked_at"] is not None for r in rows)

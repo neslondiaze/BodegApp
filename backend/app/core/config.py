@@ -30,11 +30,12 @@ class Settings(BaseSettings):
     # Clock skew tolerance for JWT verification (seconds) — QA B4
     jwt_clock_leeway_seconds: int = 30
 
-    # Refresh rotation (contract rule T3). Kept configurable because the
-    # current frontend apiClient does NOT persist a rotated refresh token
-    # (see tests: it keeps the old one), so strict rotation would break the
-    # active session. Enable once the frontend updates it atomically.
-    refresh_rotation_enabled: bool = False
+    # Refresh rotation (contract rule T3), enabled by default (QA-ST02-01):
+    # each refresh issues a new contractor token and reuse of a rotated one
+    # revokes the whole chain. The frontend persists the rotated token since
+    # QA-F04-03 (apiClient.ts:83-86 stores it atomically with the new access
+    # token). The flag remains as an operational kill-switch.
+    refresh_rotation_enabled: bool = True
 
     # CORS — only declared frontend origins, never "*" (integration contract §3.4)
     cors_origins: list[str] = ["http://localhost:5173"]

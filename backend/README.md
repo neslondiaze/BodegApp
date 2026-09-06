@@ -84,7 +84,7 @@ All settings come from environment variables with the `BODEGAPP_` prefix
 | `BODEGAPP_ACCESS_TOKEN_MINUTES` | `15` | Work token (access) lifetime |
 | `BODEGAPP_REFRESH_TOKEN_DAYS` | `7` | Contractor token (refresh) lifetime |
 | `BODEGAPP_JWT_CLOCK_LEEWAY_SECONDS` | `30` | Clock skew tolerance on verification |
-| `BODEGAPP_REFRESH_ROTATION_ENABLED` | `false` | Rotate refresh on refresh; see note below |
+| `BODEGAPP_REFRESH_ROTATION_ENABLED` | `true` | Rotate refresh on refresh; see note below |
 | `BODEGAPP_CORS_ORIGINS` | `["http://localhost:5173"]` | Allowed origins (never `*`) |
 
 ## Authentication (F0-04) — JWT RS256, dual tokens
@@ -117,14 +117,14 @@ chmod 600 secrets/jwt_private_key.pem
 
 ### Rotation note (`BODEGAPP_REFRESH_ROTATION_ENABLED`)
 
-Refresh rotation with theft detection is fully implemented: when enabled,
-each refresh issues a new contractor token, revokes the old one and reuse
-of a rotated token revokes the whole chain. It ships **disabled** because
-the current frontend apiClient keeps the OLD refresh token after a
-successful refresh (`frontend/src/lib/apiClient.ts` — it discards the
-rotated one), so strict rotation would break active sessions at the
-second refresh. Enable once the frontend persists the rotated token
-atomically (contract rule T3).
+Refresh rotation with theft detection is fully implemented and **enabled
+by default** (QA-ST02-01): each refresh issues a new contractor token,
+revokes the old one, and reuse of a rotated token revokes the whole
+chain. The frontend persists the rotated token atomically with the new
+access token (`frontend/src/lib/apiClient.ts:83-86`, remediation
+QA-F04-03). The flag remains available as an operational kill-switch
+(`BODEGAPP_REFRESH_ROTATION_ENABLED=false`) for legacy clients that
+cannot persist a rotated token.
 
 ### Auth endpoints
 
